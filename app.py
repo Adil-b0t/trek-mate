@@ -493,6 +493,11 @@ def home():
     """Home page route"""
     return render_template('index.html')
 
+# Health check endpoints for Render
+@app.route('/health')
+def health():
+    return 'ok', 200
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """Login page route"""
