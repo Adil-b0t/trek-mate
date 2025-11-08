@@ -35,8 +35,17 @@ ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
 
 
 # Database Configuration
+load_dotenv()
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', f'sqlite:///{os.path.join(basedir, "trekmate.db")}')
+db_url = os.getenv('INTERNAL_DATABASE_URL') or os.getenv('DATABASE_URL')
+if not db_url:
+    db_url = f"sqlite:///{os.path.join(basedir, 'trekmate.db')}"
+
+# Normalize postgres scheme for SQLAlchemy/psycopg2
+if db_url.startswith('postgres://'):
+    db_url = db_url.replace('postgres://', 'postgresql+psycopg2://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 mail = Mail(app)
