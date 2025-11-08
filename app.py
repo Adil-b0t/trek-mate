@@ -12,6 +12,7 @@ import requests
 import json
 import random
 import string
+import threading
 from dotenv import load_dotenv
 
 
@@ -285,17 +286,27 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 
-# Ensure tables exist when the app starts serving (works on Render without shell)
-@app.before_first_request
+# Ensure tables exist without relying on removed before_first_request (Flask 3.x)
+_init_lock = threading.Lock()
+app.config.setdefault('_DB_INIT_DONE', False)
+
+@app.before_request
 def _ensure_db_initialized():
-    try:
-        db.create_all()
+    if app.config.get('_DB_INIT_DONE'):
+        return
+    with _init_lock:
+        if app.config.get('_DB_INIT_DONE'):
+            return
         try:
-            create_admin_user()
+            db.create_all()
+            try:
+                create_admin_user()
+            except Exception:
+                pass
+            app.config['_DB_INIT_DONE'] = True
         except Exception:
+            # Avoid blocking requests if init fails; errors will surface on DB ops
             pass
-    except Exception:
-        pass
 
 # Make trek image function available in templates
 app.jinja_env.globals['get_trek_image_filename'] = get_trek_image_filename
