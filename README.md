@@ -113,7 +113,7 @@ trekMate/
 > You can replace or add your own UI screenshots. These use existing repo assets as placeholders.
 
 - **Home Section Background**
-  - ![Section Background](static/sec2-bg.png)
+  - ![Section Background](static/sec2-bg.png)![alt text](<Screenshot 2025-11-08 170443.png>)
 - **Footer/Branding**
   - ![Admin Footer](static/adminfooter.jpg)
 - **Logo**
