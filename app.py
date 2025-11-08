@@ -285,6 +285,18 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 
+# Ensure tables exist when the app starts serving (works on Render without shell)
+@app.before_first_request
+def _ensure_db_initialized():
+    try:
+        db.create_all()
+        try:
+            create_admin_user()
+        except Exception:
+            pass
+    except Exception:
+        pass
+
 # Make trek image function available in templates
 app.jinja_env.globals['get_trek_image_filename'] = get_trek_image_filename
 
