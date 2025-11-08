@@ -110,18 +110,22 @@ trekMate/
 
 ## Screenshots
 
-> You can replace or add your own UI screenshots. These use existing repo assets as placeholders.
-
 - **Home Section Background**
-  - ![Section Background](static/sec2-bg.png)![alt text](<Screenshot 2025-11-08 170443.png>)
-- **Footer/Branding**
-  - ![Admin Footer](static/adminfooter.jpg)
-- **Logo**
-  - ![Logo](static/LOGO.png)
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c80609d0-f40c-4f65-8e4c-3a28924bc702" />
 
-If you add more images (e.g., from `templates` pages), place them under `static/` and link similarly.
+- **explore section**
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b0cf47ae-408c-4470-8dee-088d2105a398" />
 
----
+- ** trek details page**
+- <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/d1abd92e-1c59-4d8a-b7a5-7145ea3e6530" />
+
+- **Trek feed**
+- <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/92db5cf5-6454-4de7-88c0-f2f7d643391c" />
+
+- **Trek match**
+- <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/efb2db8c-bcc0-415d-ad46-8d4db62c9361" />
+
+
 
 ## Getting Started
 
@@ -288,6 +292,14 @@ Static files are served by Flask; for heavy static assets, consider a CDN.
 - **Image uploads failing**: Confirm file type and size limits; ensure `Pillow` installed.
 
 ---
+
+## 📬 Contact Me
+
+Feel free to connect or reach out through any of the platforms below:
+
+- 💼 [LinkedIn – Adil Shaikh](https://www.linkedin.com/in/adil-shaikh-a2482a329/)
+- 📸 [Instagram – @adill.b0t](https://www.instagram.com/adill.b0t?igsh=MWE1Mm9xcmpmZmVxMg%3D%3D)
+
 
 ## License
 
