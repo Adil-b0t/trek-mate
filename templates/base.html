@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}TrekMate - Your Personal Trekking Companion{% endblock %}</title>
+  
+  <!-- fontawesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  
+  {% block extra_css %}{% endblock %}
+</head>
+<body data-authed="{{ '1' if current_user.is_authenticated else '0' }}">
+  <!-- Navigation Header -->
+  <header class="main-header">
+    <div class="logo">
+      <a href="{{url_for('home')}}"><img src="{{ url_for('static', filename='LOGO.png') }}" alt="TrekMate Logo"></a>
+    </div>
+    
+    <!-- Hamburger Menu Button (Mobile Only) -->
+    <button class="hamburger-menu" id="hamburgerMenu" onclick="toggleMobileMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <!-- Mobile Auth (Login/User) shown next to hamburger -->
+    <div class="mobile-auth">
+      {% if current_user.is_authenticated %}
+        <span class="mobile-user-short">{{ current_user.name }}</span>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="button-54 mobile-login-btn" role="button">Login</a>
+      {% endif %}
+    </div>
+    
+    <!-- Desktop Navigation -->
+    <nav id="nav-menu" class="desktop-nav">
+      <a class="nav-items {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Home</a>
+      <a class="nav-items {% if request.endpoint == 'explore' %}active{% endif %}" href="{{ url_for('explore') }}">Explore</a>
+      <a class="nav-items {% if request.endpoint == 'trek_match' %}active{% endif %}" href="{{ url_for('trek_match') }}">TrekMatch</a>
+      <a class="nav-items {% if request.endpoint == 'trek_feed' %}active{% endif %}" href="{{ url_for('trek_feed') }}">TrekFeed</a>
+      <a class="nav-items {% if request.endpoint == 'aboutus' %}active{% endif %}" href="{{ url_for('aboutus') }}">About Us</a>
+      <a class="nav-items {% if request.endpoint == 'guide' %}active{% endif %}" href="{{ url_for('guide') }}">Guide</a>
+    </nav>
+    
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay">
+      <div class="mobile-menu-content">
+        <a class="mobile-nav-item {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}" onclick="closeMobileMenu()"><i class="fa-solid fa-home"></i> Home</a>
+        <a class="mobile-nav-item {% if request.endpoint == 'explore' %}active{% endif %}" href="{{ url_for('explore') }}" onclick="closeMobileMenu()"><i class="fa-solid fa-mountain"></i> Explore</a>
+        <a class="mobile-nav-item {% if request.endpoint == 'trek_match' %}active{% endif %}" href="{{ url_for('trek_match') }}" onclick="closeMobileMenu()"><i class="fas fa-search"></i> TrekMatch</a>
+        <a class="mobile-nav-item {% if request.endpoint == 'trek_feed' %}active{% endif %}" href="{{ url_for('trek_feed') }}" onclick="closeMobileMenu()"><i class="fas fa-newspaper"></i> TrekFeed</a>
+        <a class="mobile-nav-item {% if request.endpoint == 'aboutus' %}active{% endif %}" href="{{ url_for('aboutus') }}" onclick="closeMobileMenu()"><i class="fa-solid fa-info-circle"></i> About Us</a>
+        <a class="mobile-nav-item {% if request.endpoint == 'guide' %}active{% endif %}" href="{{ url_for('guide') }}" onclick="closeMobileMenu()"><i class="fa-solid fa-compass"></i> Guide</a>
+        
+        {% if current_user.is_authenticated and current_user.is_admin() %}
+        <a class="mobile-nav-item" href="{{ url_for('admin_notifications') }}" onclick="closeMobileMenu()">
+          <i class="fas fa-bell"></i> Notifications
+          <span class="mobile-notification-badge" id="mobile-notification-count">0</span>
+        </a>
+        {% endif %}
+        
+        <div class="mobile-menu-divider"></div>
+        
+        {% if current_user.is_authenticated %}
+          <div class="mobile-user-info">
+            <div class="mobile-user-avatar">
+              <i class="fa-solid fa-user-astronaut"></i>
+            </div>
+            <div class="mobile-user-details">
+              <span class="mobile-user-name">{{ current_user.name }}</span>
+              <span class="mobile-user-role {{ 'admin' if current_user.is_admin() else 'user' }}">
+                {% if current_user.is_admin() %}
+                  <i class="fa-solid fa-crown"></i> Administrator
+                {% else %}
+                  <i class="fa-solid fa-user"></i> Explorer
+                {% endif %}
+              </span>
+            </div>
+          </div>
+          <a class="mobile-nav-item" href="{{ url_for('profile') }}" onclick="closeMobileMenu()"><i class="fa-solid fa-user"></i> Profile</a>
+          <a class="mobile-nav-item logout" href="{{ url_for('logout') }}" onclick="closeMobileMenu()"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+        {% else %}
+          <a class="mobile-nav-item login-btn" href="{{ url_for('login') }}" onclick="closeMobileMenu()"><i class="fa-solid fa-sign-in-alt"></i> Login</a>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Desktop Nav Right -->
+    <div class="nav-right desktop-nav-right">
+      {% if current_user.is_authenticated %}
+        <div class="user-menu">
+          <div class="user-info">
+            <span class="user-name">{{ current_user.name }}</span>
+            {% if current_user.is_admin() %}
+              <span class="user-role admin">Admin</span>
+            {% else %}
+              <span class="user-role user">User</span>
+            {% endif %}
+          </div>
+          
+          {% if current_user.is_admin() %}
+          <!-- Admin Notification Bell -->
+          <div class="notification-bell" id="notification-bell">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge hidden" id="notification-count">0</span>
+          </div>
+          {% endif %}
+          
+          <div class="user-dropdown">
+            <i class="fa-solid fa-user-circle user-icon" onclick="toggleDropdown()"></i>
+            <div class="dropdown-content" id="userDropdown">
+              <a href="{{ url_for('profile') }}"><i class="fa-solid fa-user"></i> Profile</a>
+              <a href="{{ url_for('logout') }}"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="button-54" role="button">Login</a>
+      {% endif %}
+    </div>
+    
+    <!-- Play Button (Always Visible) -->
+    <div class="play-button-container">
+      <i class="fa-solid fa-circle-play"></i>
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            {{ message }}
+            <button type="button" class="close" onclick="this.parentElement.style.display='none';">&times;</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Admin Notification Popups Container -->
+  {% if current_user.is_authenticated and current_user.is_admin() %}
+  <div id="notification-container" class="notification-container"></div>
+  {% endif %}
+
+  <!-- Main Content -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer Section -->
+  <footer id="about" class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>About TrekMate</h3>
+        <p>Your ultimate companion for unforgettable trekking adventures. Discover hidden trails and explore nature's beauty.</p>
+      </div>
+      
+      <div class="footer-section">
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a class="{% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Home</a></li>
+          <li><a class="{% if request.endpoint == 'explore' %}active{% endif %}" href="{{ url_for('explore') }}">Explore</a></li>
+          <li><a class="{% if request.endpoint == 'trek_match' %}active{% endif %}" href="{{ url_for('trek_match') }}">TrekMatch</a></li>
+          <li><a class="{% if request.endpoint == 'trek_feed' %}active{% endif %}" href="{{ url_for('trek_feed') }}">TrekFeed</a></li>
+          <li><a class="{% if request.endpoint == 'aboutus' %}active{% endif %}" href="{{ url_for('aboutus') }}">About Us</a></li>
+          <li><a class="{% if request.endpoint == 'guide' %}active{% endif %}" href="{{ url_for('guide') }}">Guide</a></li>
+          <li><a class="{% if request.endpoint == 'login' %}active{% endif %}" href="{{ url_for('login') }}">Login</a></li>
+          <li><a class="{% if request.endpoint == 'register' %}active{% endif %}" href="{{ url_for('register') }}">Register</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-section">
+        <h3>Connect</h3>
+        <div class="contact-info">
+          <div class="admin-contact">
+            <img src="{{ url_for('static', filename='adminfooter.jpg') }}" alt="Admin" class="admin-footer-img">
+            <span class="admin-email">adilgoku13579@gmail.com</span>
+          </div>
+          <div class="social-icons">
+            <a href="https://www.linkedin.com/in/adil-shaikh-a2482a329/"><i class="fab fa-linkedin"></i></a>
+            <a href="https://www.instagram.com/adill.b0t?igsh=MWE1Mm9xcmpmZmVxMg=="><i class="fab fa-instagram"></i></a>
+            <a href="https://x.com/maha_tourism/status/1479712028524646400?t=tuHf07zaanBzj9CqvWVhaA&s=19"><i class="fab fa-twitter"></i></a>
+            <a href="https://youtube.com/playlist?list=PLUlDacGk_l-rhO2cEe8mC1lZpKNhYUm9U&si=mmEHr9J7SG6AuzCs"><i class="fab fa-youtube"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p>🌿 TrekMate © 2025 | Adventure Awaits</p>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  {% if current_user.is_authenticated and current_user.is_admin() %}
+  <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+  {% endif %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+      const justLoggedIn = new URLSearchParams(window.location.search).get('just_logged_in') === '1';
+      if (isMobile && justLoggedIn) {
+        try {
+          const overlay = document.getElementById('mobileMenuOverlay');
+          const hamburger = document.getElementById('hamburgerMenu');
+          if (overlay && hamburger && !overlay.classList.contains('active')) {
+            if (typeof toggleMobileMenu === 'function') {
+              toggleMobileMenu();
+            } else {
+              overlay.classList.add('active');
+              hamburger.classList.add('active');
+            }
+          }
+        } catch (e) { /* noop */ }
+      }
+    });
+  </script>
+  {% block extra_js %}{% endblock %}
+  
+  <style>
+
+  a{
+    cursor: pointer;
+  }
+
+    /* Mobile Header Elements */
+    .hamburger-menu {
+      display: none;
+      position: absolute;
+      right: 60px;
+      top: 12px;
+      width: 34px;
+      height: 28px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      z-index: 1002;
+    }
+    .hamburger-menu span {
+      display: block;
+      height: 3px;
+      margin: 5px 0;
+      background: #16423c;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    
+    .mobile-menu-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(22, 66, 60, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 1001;
+    }
+    
+    /* Notification Bell Styles */
+    .notification-bell {
+      position: relative;
+      margin-right: 15px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+    
+    .notification-bell:hover {
+      background: rgba(22, 66, 60, 0.1);
+    }
+    
+    .notification-bell i {
+      font-size: 2.3rem;
+      color: #16423c;
+    }
+    
+    .notification-badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: #ff4444;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      min-width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 1.5s infinite;
+    }
+    
+    .notification-badge.hidden {
+      display: none !important;
+    }
+    
+    .notification-bell.has-notifications i {
+      color: #ff4444;
+    }
+    
+    /* Notification Container (for dropdown) */
+    .notification-container {
+      position: absolute;
+      top: 60px;
+      right: 0;
+      z-index: 2000;
+      width: 350px;
+      max-height: 400px;
+      overflow-y: auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      border: 1px solid #e0e0e0;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+    }
+    
+    .notification-container.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    
+    .notification-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .notification-header h4 {
+      margin: 0;
+      color: #16423c;
+      font-size: 1.1rem;
+    }
+    
+    .notification-header a {
+      color: #68b267;
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+    
+    .notification-header a:hover {
+      text-decoration: underline;
+    }
+    
+    .notification-item {
+      padding: 15px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    
+    .notification-item:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+    
+    .notification-item.empty {
+      text-align: center;
+      color: #888;
+      cursor: default;
+    }
+    
+    .notification-item.empty:hover {
+      background-color: transparent;
+    }
+    
+    .notification-item.unread {
+      background-color: #f0f8ff;
+      border-left: 3px solid #16423c;
+    }
+    
+    .notification-content {
+      width: 100%;
+    }
+    
+    .notification-title {
+      font-weight: 600;
+      color: #16423c;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
+    
+    .notification-message {
+      color: #555;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+    
+    .notification-time {
+      color: #888;
+      font-size: 0.75rem;
+    }
+    
+    .notification-footer {
+      padding: 12px 20px;
+      border-top: 1px solid #e0e0e0;
+      text-align: center;
+    }
+    
+    .notification-footer a {
+      color: #16423c;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    
+    .notification-footer a:hover {
+      text-decoration: underline;
+    }
+    
+    /* Individual Notification Popup (toast style) */
+    .notification-popup {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 2100;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      width: 320px;
+      padding: 16px;
+      border-left: 4px solid #16423c;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      opacity: 0;
+      transform: translateX(100%);
+      margin-bottom: 15px;
+    }
+    
+    .notification-popup.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    
+    .notification-popup::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, #16423c, #68b267);
+    }
+    
+    .notification-popup:hover {
+      box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+    }
+    
+    .notification-popup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .notification-popup-header strong {
+      color: #16423c;
+      font-size: 0.95rem;
+    }
+    
+    .close-popup {
+      background: transparent;
+      border: none;
+      color: #888;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 4px;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .close-popup:hover {
+      background: #f0f0f0;
+      color: #16423c;
+    }
+    
+    .notification-popup-body {
+      color: #555;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+    
+    .notification-popup-footer {
+      text-align: right;
+    }
+    
+    .notification-popup-footer small {
+      color: #888;
+      font-size: 0.75rem;
+    }
+    
+    .notification-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    
+    .notification-icon {
+      width: 32px;
+      height: 32px;
+      background: #16423c;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    
+    .notification-content {
+      flex-grow: 1;
+    }
+    
+    .notification-title {
+      font-weight: 700;
+      color: #16423c;
+      margin-bottom: 4px;
+      font-size: 0.95rem;
+    }
+    
+    .notification-message {
+      color: #555;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+    
+    .notification-time {
+      color: #888;
+      font-size: 0.75rem;
+      font-style: italic;
+    }
+    
+    .notification-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: transparent;
+      border: none;
+      color: #888;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+    }
+    
+    .notification-close:hover {
+      background: #f0f0f0;
+      color: #16423c;
+    }
+    
+    /* Animations */
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    @keyframes slideOutRight {
+      from {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+    }
+    
+    .notification-popup.fade-out {
+      animation: slideOutRight 0.3s ease-in forwards;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    .mobile-menu-overlay.active { display: block; }
+    
+    .mobile-menu-content {
+      position: absolute;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .mobile-nav-item {
+      display: block;
+      padding: 14px 18px;
+      font-size: 1.1rem;
+      color: white;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      text-decoration: none;
+    }
+    .mobile-nav-item:hover { background: rgba(255, 255, 255, 0.15); }
+    .mobile-nav-item.logout { background: rgba(255, 107, 107, 0.25); border-color: rgba(214, 48, 49, 0.4); }
+    .mobile-nav-item.login-btn { background: rgba(168, 213, 186, 0.35); border-color: rgba(168, 213, 186, 0.6); color: #173e1b; }
+    
+    .mobile-menu-divider { height: 1px; background: rgba(255, 255, 255, 0.2); margin: 8px 0; }
+    
+    .mobile-user-info { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; }
+    .mobile-user-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #68b267, #a8d5ba); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+    .mobile-user-avatar i { color: #173e1b; font-size: 1.2rem; }
+    .mobile-user-name { font-weight: 700; color: #e6fff0; }
+    .mobile-user-role.admin { background: #ffb347; color: #8b4513; padding: 2px 8px; border-radius: 999px; font-size: 0.8rem; }
+    .mobile-user-role.user { background: #68b267; color: #fff; padding: 2px 8px; border-radius: 999px; font-size: 0.8rem; }
+    
+    /* Mobile Notification Badge */
+    .mobile-notification-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #ff4444;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      min-width: 18px;
+      height: 18px;
+      margin-left: 8px;
+      animation: pulse 1.5s infinite;
+    }
+    
+    .mobile-notification-badge.hidden {
+      display: none !important;
+    }
+    
+    .desktop-nav-right { display: flex; }
+    .play-button-container { position: fixed; right: 12px; top: 7px; z-index: 1000; }
+    .play-button-container i { font-size: 3.2rem; color: #16423c; }
+
+    /* Mobile auth (next to hamburger) */
+    .mobile-auth {
+      display: none;
+      position: absolute;
+      right: 100px; /* sits left of hamburger (which is ~60px from right) */
+      top: 10px;
+      align-items: center;
+      gap: 8px;
+      z-index: 1002;
+    }
+    .mobile-auth .mobile-user-short {
+      font-weight: 700;
+      color: #2c5530;
+      font-size: 0.95rem;
+      background: #eaf5e7;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #cde8d4;
+    }
+    /* Tweak button-54 to fit in header space on mobile */
+    .mobile-auth .mobile-login-btn {
+      min-width: 80px;
+      min-height: 28px;
+      height: auto;
+      padding: 6px 10px;
+      font-size: 12px;
+      letter-spacing: 1px;
+      box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px;
+    }
+
+    /* Layout safety: keep content below fixed header and above footer */
+    /* main {
+      padding-top: 90px;   
+      padding-bottom: 80px; 
+      display: block;
+    } */
+    
+    @media (max-width: 768px) {
+      .desktop-nav { display: none; }
+      .desktop-nav-right { display: none; }
+      .hamburger-menu { display: block; }
+      .play-button-container i { font-size: 2rem; }
+      .mobile-auth { display: flex; }
+    }
+    
+    @media (max-width: 480px) {
+      .hamburger-menu { right: 50px; top: 10px; width: 30px; height: 24px; }
+      .play-button-container { right: 10px; top: 8px; }
+      .play-button-container i { font-size: 1.7rem; }
+      .mobile-auth { right: 90px; top: 8px; }
+      .mobile-auth .mobile-login-btn { min-width: 70px; font-size: 11px; padding: 5px 8px; }
+    }
+
+    /* Flash Messages Styling */
+    .flash-messages {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 1000;
+      width: 300px;
+    }
+    
+    .flash-message {
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: relative;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    .flash-success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .flash-error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .flash-info {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    
+    .flash-message .close {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      opacity: 0.7;
+    }
+    
+    .flash-message .close:hover {
+      opacity: 1;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    /* Audio button smooth transitions */
+    .nav-right i.fa-circle-play,
+    .nav-right i.fa-pause-circle,
+    .play-button-container i.fa-circle-play,
+    .play-button-container i.fa-pause-circle {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .nav-right i.fa-circle-play:hover,
+    .nav-right i.fa-pause-circle:hover,
+    .play-button-container i.fa-circle-play:hover,
+    .play-button-container i.fa-pause-circle:hover {
+      transform: scale(1.1);
+      color: #e4b676;
+    }
+    
+    /* User Menu Styling */
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      position: relative;
+    }
+    
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      margin-right: 10px;
+      position: relative;
+      right: 20px;
+    }
+    
+    .user-name {
+      font-weight: 600;
+      color: #2c5530;
+      font-size: 0.9rem;
+    }
+    
+    .user-role {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 10px;
+      margin-top: 2px;
+    }
+    
+    .user-role.admin {
+      background-color: #ffb347;
+      color: #8b4513;
+    }
+    
+    .user-role.user {
+      background-color: #68b267;
+      color: white;
+    }
+    
+    .user-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .user-icon {
+      font-size: 2rem;
+      color: #2c5530;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .user-icon:hover {
+      color: #ffb347;
+      transform: scale(1.1);
+    }
+    
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: white;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      z-index: 1000;
+      margin-top: 10px;
+      border: 2px solid #68b267;
+    }
+    
+    .dropdown-content a {
+      color: #2c5530;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      transition: all 0.3s ease;
+    }
+    
+    .dropdown-content a:hover {
+      background-color: #f0f8f0;
+      color: #ffb347;
+    }
+    
+    .dropdown-content a:first-child {
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+    }
+    
+    .dropdown-content a:last-child {
+      border-bottom-left-radius: 6px;
+      border-bottom-right-radius: 6px;
+    }
+    
+    .dropdown-content.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Admin Footer Image Styling */
+    .admin-contact {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .admin-footer-img {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: center bottom; /* Show bottom portion of image */
+      border: 3px solid #16423c;
+      transition: all 0.4s ease;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(22, 66, 60, 0.3);
+      flex-shrink: 0;
+    }
+    
+    .admin-footer-img:hover {
+      transform: scale(4.5);
+      border: 0.2px solid #68b267;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+      z-index: 100;
+      position: relative;
+    }
+    
+    .admin-email {
+      font-family: 'Poppins', sans-serif;
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.9);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    
+    .admin-email:hover {
+      color: #a8d5ba;
+      transform: scale(1.05);
+      text-shadow: 0 3px 10px rgba(0,0,0,0.5);
+      text-decoration: none;
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      .admin-footer-img {
+        width: 60px;
+        height: 60px;
+      }
+      
+      .admin-footer-img:hover {
+        transform: scale(3.5);
+      }
+      
+      .admin-email {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</body>
+</html>

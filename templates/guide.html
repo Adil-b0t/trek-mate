@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}TrekMate - Guide{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Guide page specific styles */
+  body{
+
+  background-color: #a8d5ba;
+  }
+  .guide-main { max-width: 1000px; margin: 3rem auto; padding: 0 1.5rem 4rem; position: relative; }
+
+  .guide-header { text-align: center; margin-bottom: 3rem; }
+  .guide-header h1 { font-size: 2.7rem; font-weight: 700; color: #328152; margin-bottom: 0.8rem; }
+  .guide-header p { font-size: 1.2rem; color: #d8f5db; }
+
+  /* Section Cards */
+  section {
+    margin-bottom: 2rem;
+    padding: 1.5rem 2rem;
+    border-radius: 12px;
+    background: rgba(42, 91, 55, 0.7);
+    backdrop-filter: blur(6px);
+    border-left: 6px solid #68b267;
+    transition: all 0.3s ease;
+  }
+  section:hover {
+    transform: translateY(-5px);
+    border-color: #ffb347;
+  }
+  section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #5dc1f2;
+  }
+  section p { color: #f1f9f2; font-size: 1.05rem; }
+
+  /* CTA */
+  .cta { text-align: center; margin-top: 3rem; }
+  .btn-54 {
+    display: inline-block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1c3b26;
+    background: #68b267;
+    border: 2px solid #1c3b26;
+    padding: 0.8rem 2.2rem;
+    border-radius: 40px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    text-decoration: none;
+  }
+  .btn-54:hover {
+    background: #ffb347;
+    border-color: #ffb347;
+    color: #1c3b26;
+    box-shadow: 0 8px 20px rgba(255, 179, 71, 0.4);
+    transform: translateY(-3px) scale(1.05);
+  }
+
+  /* Graphics Layer */
+  .graphics {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: -1;
+  }
+  .sun {
+    position: absolute;
+    top: 40px; right: 80px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, #ffb347, #ff8c42);
+    border-radius: 50%;
+    box-shadow: 0 0 40px rgba(255, 140, 66, 0.6);
+    animation: pulse 4s infinite alternate;
+  }
+  .mountains { position: absolute; bottom: 0; width: 100%; }
+  .trees { position: absolute; bottom: 0; left: 15%; width: 100px; opacity: 0.9; }
+
+  /* Inline SVG tree styling */
+  svg.trees circle { transition: fill 0.3s ease; }
+  svg.trees:hover circle { fill: #7ed08b; }
+
+  @keyframes pulse { from{transform:scale(1);} to{transform:scale(1.15);} }
+</style>
+{% endblock %}
+
+{% block content %}
+  <!-- Background Graphics -->
+  <div class="graphics">
+    <div class="sun"></div>
+    <div class="mountains">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+        <path fill="#13321f" d="M0,192L80,181.3C160,171,320,149,480,165.3C640,181,800,235,960,229.3C1120,224,1280,160,1360,128L1440,96V320H0Z"></path>
+      </svg>
+    </div>
+  </div>
+
+  <div class="guide-main">
+    <div class="guide-header">
+      <h1>Trek Preparation Guide</h1>
+      <p>Simple tips to make your trekking journey safer, smoother, and more fun.</p>
+    </div>
+
+    <section><h2>📝 Plan Your Trek</h2><p>Check the weather, trail difficulty, and permits if needed. Share your plan with family or friends before you leave.</p></section>
+    <section><h2>🏃‍♂️ Fitness Prep</h2><p>A little jogging, stretching, or short hikes beforehand will make the trek smoother and more fun.</p></section>
+    <section><h2>🎒 Backpack Smart</h2><p>Carry only essentials—water, snacks, jacket, torch, and a small first aid kit. Keep it light and easy to carry.</p></section>
+    <section><h2>👟 Right Gear</h2><p>Good trekking shoes with grip are a must. Pack quick-dry clothes, an extra pair of socks, and a cap or sunglasses.</p></section>
+    <section><h2>💧 Stay Hydrated</h2><p>Sip water often instead of drinking too much at once. Carry ORS or electrolytes to stay energized.</p></section>
+    <section><h2>🍏 Eat Light</h2><p>Carry dry fruits, energy bars, or fruits. Avoid heavy food that slows you down on the trail.</p></section>
+    <section><h2>🌿 Respect Nature</h2><p>Don’t litter, stay on the trail, and keep the environment as clean as you found it.</p></section>
+    <section><h2>🤝 Trekking Etiquette</h2><p>Stay with your group, help fellow trekkers if needed, and always keep a positive vibe.</p></section>
+    <section><h2>🌄 Enjoy the Journey</h2><p>Don’t rush to the summit. Take breaks, breathe in the views, and enjoy every step of the adventure.</p></section>
+
+    <div class="cta">
+      <a href="{{ url_for('trek_feed') }}" class="btn-54">Explore trek feed</a>
+    </div>
+  </div>
+{% endblock %}

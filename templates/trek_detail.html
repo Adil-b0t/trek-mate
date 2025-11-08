@@ -1,0 +1,1460 @@
+{% extends "base.html" %}
+
+{% block title %}{{ trek.name }} - TrekMate{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Trek Detail Page Styles */
+  body {
+    background-color: #a8d5ba;
+  }
+  
+  .trek-detail-container {
+    padding: 100px 20px 50px;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  .trek-detail-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Back Button */
+  .back-button {
+    display: inline-block;
+    margin-bottom: 30px;
+    padding: 10px 20px;
+    background: #16423c;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .back-button:hover {
+    background: #1c4a21;
+    transform: translateY(-2px);
+    color: white;
+  }
+
+  /* Trek Header Section */
+  .trek-header {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+  }
+
+  .trek-hero-image {
+    height: 400px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .trek-hero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .trek-header-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    padding: 40px 30px 30px;
+    color: white;
+  }
+
+  .trek-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-family: 'Oswald', sans-serif;
+  }
+
+  .trek-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 20px;
+  }
+
+  .trek-quick-stats {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+
+  .quick-stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .quick-stat i {
+    color: #a8d5ba;
+  }
+
+  /* Trek Info Grid */
+  .trek-info-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    margin-bottom: 40px;
+  }
+
+  .trek-main-info {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  }
+
+  .trek-sidebar {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    height: fit-content;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0b5f31;
+    margin-bottom: 20px;
+    border-bottom: 3px solid #a8d5ba;
+    padding-bottom: 10px;
+  }
+
+  .gen-z-intro {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #555;
+    margin-bottom: 30px;
+    font-style: italic;
+  }
+
+  /* Info Cards */
+  .info-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .info-card h4 {
+    color: #16423c;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .info-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .info-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .info-list li:last-child {
+    border-bottom: none;
+  }
+
+  .info-label {
+    font-weight: 600;
+    color: #16423c;
+  }
+
+  .info-value {
+    color: #16423c;
+  }
+
+  /* Difficulty Badge in Detail */
+  .difficulty-badge-large {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 20px;
+  }
+
+  .difficulty-easy {
+    background: #4CAF50;
+    color: white;
+  }
+
+  .difficulty-moderate {
+    background: #FF9800;
+    color: white;
+  }
+
+  .difficulty-hard {
+    background: #F44336;
+    color: white;
+  }
+
+  .difficulty-easy-moderate {
+    background: linear-gradient(45deg, #4CAF50, #FF9800);
+    color: white;
+  }
+
+  /* Highlights Section */
+  .highlights-list {
+    list-style: none;
+    padding: 0;
+    color: #16423c;
+  }
+
+  .highlights-list li {
+    padding: 10px 0;
+    border-left: 4px solid #a8d5ba;
+    padding-left: 15px;
+    margin-bottom: 10px;
+    background: #f0f8f0;
+    border-radius: 0 8px 8px 0;
+  }
+
+  /* Routes Section */
+  .route-section {
+    margin-bottom: 30px;
+    color: #16423c;
+  }
+
+  .route-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+  }
+
+  .route-tab {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: #666;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+  }
+
+  .route-tab.active {
+    color: #16423c;
+    border-bottom-color: #16423c;
+  }
+
+  .route-content {
+    display: none;
+  }
+
+  .route-content.active {
+    display: block;
+  }
+
+  .route-item {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+  }
+
+  .route-item h5 {
+    color: #16423c;
+    margin-bottom: 10px;
+  }
+
+  /* Comments Section */
+  .comments-section {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  }
+
+  .comment-form {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    font-weight: 600;
+    color: #16423c;
+    margin-bottom: 8px;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+  }
+
+  .form-control:focus {
+    border-color: #16423c;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(22, 66, 60, 0.1);
+  }
+
+  textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  .star-rating {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+
+  .star {
+    font-size: 1.5rem;
+    color: #ddd;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+
+  .star:hover,
+  .star.active {
+    color: #ffb347;
+  }
+
+  .submit-btn {
+    background: #16423c;
+    color: white;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .submit-btn:hover {
+    background: #1c4a21;
+    transform: translateY(-2px);
+  }
+
+  /* File Upload Styling */
+  .file-upload-wrapper {
+    position: relative;
+    margin-bottom: 10px;
+  }
+
+  .file-input {
+    display: none;
+  }
+
+  .file-upload-label {
+    display: inline-block;
+    padding: 12px 20px;
+    background: #f8f9fa;
+    border: 2px dashed #16423c;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-width: 200px;
+  }
+
+  .file-upload-label:hover {
+    background: #16423c;
+    color: white;
+    border-style: solid;
+  }
+
+  .file-upload-label i {
+    margin-right: 8px;
+    font-size: 1.2rem;
+  }
+
+  .file-preview {
+    margin-top: 10px;
+  }
+
+  .file-preview img {
+    max-width: 200px;
+    max-height: 150px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .form-text {
+    color: #666;
+    font-size: 0.85rem;
+    margin-top: 5px;
+  }
+
+  /* Comments List */
+  .comments-list {
+    max-height: 600px;
+    overflow-y: auto;
+  }
+
+  .comment-item {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-left: 4px solid #a8d5ba;
+  }
+
+  .comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  .comment-author {
+    font-weight: 700;
+    color: #16423c;
+  }
+
+  .comment-date {
+    color: #666;
+    font-size: 0.9rem;
+  }
+
+  .comment-rating {
+    color: #ffb347;
+    margin-bottom: 10px;
+  }
+
+  .comment-text {
+    line-height: 1.6;
+    color: #555;
+  }
+
+  .comment-image {
+    margin: 15px 0;
+  }
+
+  .comment-image img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+
+  .comment-image img:hover {
+    transform: scale(1.02);
+  }
+
+  .comment-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .delete-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .delete-btn:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+  }
+
+  .login-prompt {
+    text-align: center;
+    padding: 30px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    color: #666;
+  }
+
+  .login-prompt a {
+    color: #16423c;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .login-prompt a:hover {
+    text-decoration: underline;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .trek-info-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .trek-title {
+      font-size: 2rem;
+    }
+
+    .trek-quick-stats {
+      gap: 15px;
+    }
+
+    .route-tabs {
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .route-tab {
+      flex: 1;
+      min-width: 120px;
+    }
+  }
+
+  /* Graphics Layer */
+  .graphics {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+  
+  .sun {
+    position: absolute;
+    top: 40px;
+    right: 80px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, #ffb347, #ff8c42);
+    border-radius: 50%;
+    box-shadow: 0 0 40px rgba(255, 140, 66, 0.6);
+    animation: pulse 4s infinite alternate;
+  }
+  
+  .mountains {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+  }
+  
+  @keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.15); }
+  }
+
+  /* Image Modal */
+  .image-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+    animation: fadeIn 0.3s ease;
+  }
+
+  .modal-content {
+    position: relative;
+    margin: auto;
+    display: block;
+    width: 90%;
+    max-width: 800px;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+  }
+
+  .modal-content img {
+    max-width: 100%;
+    max-height: 80vh;
+    border-radius: 8px;
+  }
+
+  .close-modal {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    color: white;
+    font-size: 35px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 2001;
+  }
+
+  .close-modal:hover {
+    color: #ffb347;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Weather Widget Styles */
+  .weather-widget {
+    background: linear-gradient(135deg, #16423c, #1c4a21);
+    border-radius: 15px;
+    padding: 20px;
+    color: white;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .weather-widget::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1), transparent);
+    border-radius: 50%;
+  }
+
+  .weather-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
+
+  .weather-location {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #a8d5ba;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .weather-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
+
+  .weather-temp {
+    font-size: 3rem;
+    font-weight: bold;
+    color: white;
+  }
+
+  .weather-icon {
+    font-size: 3rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  }
+
+  .weather-description {
+    font-size: 1rem;
+    color: #d8f5db;
+    margin-bottom: 15px;
+    text-transform: capitalize;
+  }
+
+  .weather-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    font-size: 0.9rem;
+  }
+
+  .weather-detail {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #e6fff0;
+  }
+
+  .weather-detail i {
+    color: #a8d5ba;
+    width: 16px;
+  }
+
+  /* Weather animations */
+  @keyframes weatherPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .weather-widget:hover {
+    animation: weatherPulse 2s ease-in-out;
+  }
+
+  /* Responsive weather widget */
+  @media (max-width: 768px) {
+    .weather-temp {
+      font-size: 2.5rem;
+    }
+    
+    .weather-icon {
+      font-size: 2.5rem;
+    }
+    
+    .weather-details {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+  }
+
+  /* Save Trek Button Styles */
+  .save-trek-section {
+    margin-bottom: 25px;
+  }
+
+  .save-trek-btn {
+    width: 100%;
+    padding: 15px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    color: white;
+    background: linear-gradient(135deg, #16423c, #1c4a21);
+    box-shadow: 0 4px 15px rgba(22, 66, 60, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .save-trek-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: all 0.5s ease;
+  }
+
+  .save-trek-btn:hover::before {
+    left: 100%;
+  }
+
+  .save-trek-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(22, 66, 60, 0.4);
+    color: white;
+  }
+
+  .save-trek-btn.saved {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  }
+
+  .save-trek-btn.saved:hover {
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+  }
+
+  .save-trek-btn.login-required {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+  }
+
+  .save-trek-btn.login-required:hover {
+    background: linear-gradient(135deg, #16423c, #1c4a21);
+    color: white;
+  }
+
+  .save-trek-btn i {
+    font-size: 1.3rem;
+    transition: all 0.3s ease;
+  }
+
+  .save-trek-btn:hover i {
+    transform: scale(1.1);
+  }
+
+  .save-trek-btn.saving {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  .save-trek-btn.saving i {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Responsive save button */
+  @media (max-width: 768px) {
+    .save-trek-btn {
+      padding: 12px 16px;
+      font-size: 1rem;
+    }
+    
+    .save-trek-btn i {
+      font-size: 1.1rem;
+    }
+  }
+
+  /* Toast Notification Styles */
+  .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    z-index: 3000;
+    transform: translateX(400px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    max-width: 350px;
+  }
+
+  .toast.show {
+    transform: translateX(0);
+  }
+
+  .toast-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+  }
+
+  .toast-error {
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
+  }
+
+  .toast-info {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+  }
+
+  /* Responsive toast */
+  @media (max-width: 768px) {
+    .toast {
+      right: 10px;
+      left: 10px;
+      max-width: none;
+      transform: translateY(-100px);
+    }
+    
+    .toast.show {
+      transform: translateY(0);
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Background Graphics -->
+<div class="graphics">
+  <div class="sun"></div>
+  <div class="mountains">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+      <path fill="#13321f" d="M0,192L80,181.3C160,171,320,149,480,165.3C640,181,800,235,960,229.3C1120,224,1280,160,1360,128L1440,96V320H0Z"></path>
+    </svg>
+  </div>
+</div>
+
+<div class="trek-detail-container">
+  <div class="trek-detail-wrapper">
+    <!-- Back Button -->
+    <a href="{{ url_for('explore') }}" class="back-button">
+      <i class="fas fa-arrow-left"></i> Back to Explore
+    </a>
+
+    <!-- Trek Header -->
+    <div class="trek-header">
+      <div class="trek-hero-image">
+        <!-- Use proper trek images -->
+        {% if trek.image_filename %}
+          <img src="{{ url_for('static', filename='trekimages/' + trek.image_filename) }}" alt="{{ trek.name }}" onerror="this.src='{{ url_for('static', filename='image/img1.png') }}'">
+        {% else %}
+          {% set image_filename = get_trek_image_filename(trek.name) %}
+          <img src="{{ url_for('static', filename='trekimages/' + image_filename) }}" alt="{{ trek.name }}" onerror="this.src='{{ url_for('static', filename='image/img1.png') }}'">
+        {% endif %}
+        
+        <div class="trek-header-overlay">
+          <h1 class="trek-title">{{ trek.name }}</h1>
+          {% if trek.full_name and trek.full_name != trek.name %}
+          <p class="trek-subtitle">{{ trek.full_name }}</p>
+          {% endif %}
+          
+          <div class="trek-quick-stats">
+            <div class="quick-stat">
+              <i class="fas fa-map-marker-alt"></i>
+              <span>{{ trek.region.name if trek.region else 'Unknown Region' }}</span>
+            </div>
+            {% if trek.height_ft %}
+            <div class="quick-stat">
+              <i class="fas fa-mountain"></i>
+              <span>{{ trek.height_ft }} ft</span>
+            </div>
+            {% endif %}
+            {% if trek.distance_km %}
+            <div class="quick-stat">
+              <i class="fas fa-route"></i>
+              <span>{{ trek.distance_km }} km</span>
+            </div>
+            {% endif %}
+            {% if trek.duration %}
+            <div class="quick-stat">
+              <i class="fas fa-clock"></i>
+              <span>{{ trek.duration }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trek Info Grid -->
+    <div class="trek-info-grid">
+      <!-- Main Info -->
+      <div class="trek-main-info">
+        <h2 class="section-title">About This Trek</h2>
+        
+        {% if trek.gen_z_intro %}
+        <div class="gen-z-intro">
+          "{{ trek.gen_z_intro }}"
+        </div>
+        {% endif %}
+
+        <!-- Route Information -->
+        {% if trek.private_routes or trek.public_routes %}
+        <div class="route-section">
+          <h3>How to Reach</h3>
+          <div class="route-tabs">
+            {% if trek.private_routes %}
+            <button class="route-tab active" onclick="showRouteTab(event, 'private')">By Private Vehicle</button>
+            {% endif %}
+            {% if trek.public_routes %}
+            <button class="route-tab {% if not trek.private_routes %}active{% endif %}" onclick="showRouteTab(event, 'public')">By Public Transport</button>
+            {% endif %}
+          </div>
+
+          {% if trek.private_routes %}
+          <div id="private" class="route-content active">
+            {% for route in trek.private_routes %}
+            <div class="route-item">
+              <h5>From {{ route.from_city }}</h5>
+              <p><strong>Distance:</strong> {{ route.distance_km }} km | <strong>Duration:</strong> {{ route.duration }}</p>
+              <p>{{ route.route_description }}</p>
+              {% if route.road_condition %}
+              <p><strong>Road Condition:</strong> {{ route.road_condition }}</p>
+              {% endif %}
+              {% if route.parking_info %}
+              <p><strong>Parking:</strong> {{ route.parking_info }}</p>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if trek.public_routes %}
+          <div id="public" class="route-content {% if not trek.private_routes %}active{% endif %}">
+            {% for route in trek.public_routes %}
+            <div class="route-item">
+              <h5>From {{ route.from_city }}</h5>
+              <p><strong>Total Time:</strong> {{ route.total_time }}</p>
+              {% if route.frequency %}
+              <p><strong>Frequency:</strong> {{ route.frequency }}</p>
+              {% endif %}
+              <div>{{ route.route_steps|safe }}</div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Trek Highlights -->
+        {% if trek.highlights %}
+        <div class="info-card">
+          <h4><i class="fas fa-star"></i> Trek Highlights</h4>
+          <ul class="highlights-list">
+            {% for highlight in trek.highlights %}
+            <li>{{ highlight.highlight }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Sidebar -->
+      <div class="trek-sidebar">
+        <!-- Weather Widget -->
+        {% if weather %}
+        <div class="weather-widget">
+          <div class="weather-header">
+            <div class="weather-location">
+              <i class="fas fa-map-marker-alt"></i>
+              {{ weather.location }}
+            </div>
+            <small style="color: #a8d5ba; font-size: 0.8rem;">Current Weather</small>
+          </div>
+          
+          <div class="weather-main">
+            <div class="weather-temp">{{ weather.temperature }}°C</div>
+            <div class="weather-icon">
+              {% if weather.main == 'Clear' %}
+                ☀️
+              {% elif weather.main == 'Clouds' %}
+                ☁️
+              {% elif weather.main == 'Rain' %}
+                🌧️
+              {% elif weather.main == 'Drizzle' %}
+                🌦️
+              {% elif weather.main == 'Thunderstorm' %}
+                ⛈️
+              {% elif weather.main == 'Snow' %}
+                ❄️
+              {% elif weather.main == 'Mist' or weather.main == 'Fog' %}
+                🌫️
+              {% else %}
+                🌤️
+              {% endif %}
+            </div>
+          </div>
+          
+          <div class="weather-description">{{ weather.description }}</div>
+          
+          <div class="weather-details">
+            <div class="weather-detail">
+              <i class="fas fa-tint"></i>
+              <span>{{ weather.humidity }}% Humidity</span>
+            </div>
+            <div class="weather-detail">
+              <i class="fas fa-wind"></i>
+              <span>{{ "%.1f"|format(weather.wind_speed) }} m/s Wind</span>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        
+        <!-- Save Trek Button -->
+        {% if current_user.is_authenticated %}
+        <div class="save-trek-section">
+          <button id="saveTrekBtn" class="save-trek-btn {{ 'saved' if is_saved else '' }}" 
+                  data-trek-id="{{ trek.id }}" data-saved="{{ 'true' if is_saved else 'false' }}">
+            <i class="fas {{ 'fa-bookmark' if is_saved else 'fa-bookmark' }}" id="saveTrekIcon"></i>
+            <span id="saveTrekText">{{ 'Saved' if is_saved else 'Save Trek' }}</span>
+          </button>
+        </div>
+        {% else %}
+        <div class="save-trek-section">
+          <a href="{{ url_for('login') }}" class="save-trek-btn login-required">
+            <i class="fas fa-bookmark"></i>
+            <span>Login to Save</span>
+          </a>
+        </div>
+        {% endif %}
+        
+        <h3 class="section-title">Trek Details</h3>
+        
+        <!-- Difficulty Badge -->
+        {% if trek.difficulty %}
+        {% set difficulty_class = trek.difficulty|lower|replace('–', '-') %}
+        <div class="difficulty-badge-large difficulty-{{ difficulty_class }}">
+          {{ trek.difficulty }}
+        </div>
+        {% endif %}
+
+        <!-- Trek Info -->
+        <div class="info-card">
+          <ul class="info-list">
+            {% if trek.height_ft %}
+            <li>
+              <span class="info-label">Elevation</span>
+              <span class="info-value">{{ trek.height_ft }} ft ({{ trek.height_m }} m)</span>
+            </li>
+            {% endif %}
+            {% if trek.distance_km %}
+            <li>
+              <span class="info-label">Distance</span>
+              <span class="info-value">{{ trek.distance_km }} km</span>
+            </li>
+            {% endif %}
+            {% if trek.duration %}
+            <li>
+              <span class="info-label">Duration</span>
+              <span class="info-value">{{ trek.duration }}</span>
+            </li>
+            {% endif %}
+            {% if trek.base_village %}
+            <li>
+              <span class="info-label">Base Village</span>
+              <span class="info-value">{{ trek.base_village }}</span>
+            </li>
+            {% endif %}
+            {% if trek.best_season %}
+            <li>
+              <span class="info-label">Best Season</span>
+              <span class="info-value">{{ trek.best_season }}</span>
+            </li>
+            {% endif %}
+            {% if trek.region %}
+            <li>
+              <span class="info-label">Region</span>
+              <span class="info-value">{{ trek.region.name }}</span>
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="comments-section">
+      <h2 class="section-title">
+        <i class="fas fa-comments"></i> Reviews & Experiences
+        <span style="font-size: 1rem; font-weight: normal; color: #666;">({{ comments|length }} {% if comments|length == 1 %}review{% else %}reviews{% endif %})</span>
+      </h2>
+
+      <!-- Comment Form -->
+      {% if current_user.is_authenticated %}
+      <form method="POST" action="{{ url_for('add_comment', trek_id=trek.id) }}" class="comment-form" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <h4>Share Your Experience</h4>
+        
+        <div class="form-group">
+          <label for="rating">Rating</label>
+          <div class="star-rating" id="starRating">
+            <span class="star" data-rating="1">★</span>
+            <span class="star" data-rating="2">★</span>
+            <span class="star" data-rating="3">★</span>
+            <span class="star" data-rating="4">★</span>
+            <span class="star" data-rating="5">★</span>
+          </div>
+          <input type="hidden" name="rating" id="ratingInput" value="">
+        </div>
+        
+        <div class="form-group">
+          <label for="comment">Your Review</label>
+          <textarea name="comment" id="comment" class="form-control" 
+                    placeholder="Tell us about your trekking experience, any tips for other trekkers, or memorable moments..." required></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="image">Share a Photo (Optional)</label>
+          <div class="file-upload-wrapper">
+            <input type="file" name="image" id="image" class="file-input" accept="image/*">
+            <label for="image" class="file-upload-label">
+              <i class="fas fa-camera"></i>
+              <span class="file-upload-text">Choose Image</span>
+            </label>
+            <div class="file-preview" id="filePreview"></div>
+          </div>
+          <small class="form-text">Max file size: 16MB. Supported formats: PNG, JPG, JPEG, GIF, WebP</small>
+        </div>
+        
+        <button type="submit" class="submit-btn">
+          <i class="fas fa-paper-plane"></i> Post Review
+        </button>
+      </form>
+      {% else %}
+      <div class="login-prompt">
+        <p>Please <a href="{{ url_for('login') }}">login</a> to share your trekking experience and read other reviews.</p>
+      </div>
+      {% endif %}
+
+      <!-- Comments List -->
+      {% if comments %}
+      <div class="comments-list">
+        {% for comment in comments %}
+        <div class="comment-item">
+          <div class="comment-header">
+            <span class="comment-author">
+              {{ comment.user.name }}
+              {% if comment.user.is_admin() %}
+                <span class="user-role admin" style="font-size: 0.7rem; padding: 2px 6px; border-radius: 10px; background: #ffb347; color: #8b4513; margin-left: 5px;">
+                  <i class="fa-solid fa-crown"></i> Admin
+                </span>
+              {% endif %}
+            </span>
+            <span class="comment-date">{{ comment.created_at.strftime('%B %d, %Y') }}</span>
+          </div>
+          
+          {% if comment.rating %}
+          <div class="comment-rating">
+            {% for i in range(1, 6) %}
+              {% if i <= comment.rating %}
+                ★
+              {% else %}
+                ☆
+              {% endif %}
+            {% endfor %}
+          </div>
+          {% endif %}
+          
+          <p class="comment-text">{{ comment.comment }}</p>
+          
+          <!-- Comment Image -->
+          {% if comment.image_filename %}
+          <div class="comment-image">
+            <img src="{{ url_for('static', filename='uploads/comments/' + comment.image_filename) }}" 
+                 alt="Comment image" onclick="openImageModal(this.src)">
+          </div>
+          {% endif %}
+          
+          <!-- Delete Button (Admin or Comment Author) -->
+          {% if current_user.is_authenticated and (current_user.is_admin() or comment.user_id == current_user.id) %}
+          <div class="comment-actions">
+            <form method="POST" action="{{ url_for('delete_comment', comment_id=comment.id) }}" 
+                  onsubmit="return confirm('Are you sure you want to delete this comment?')" style="display: inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="delete-btn">
+                <i class="fas fa-trash"></i> Delete
+              </button>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p style="text-align: center; color: #666; padding: 20px;">
+        No reviews yet. Be the first to share your experience!
+      </p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="image-modal" onclick="closeImageModal()">
+  <div class="modal-content">
+    <span class="close-modal" onclick="closeImageModal()">&times;</span>
+    <img id="modalImage" src="" alt="Full size image">
+  </div>
+</div>
+
+<script>
+  // Route tab switching
+  function showRouteTab(evt, routeType) {
+    var i, tabcontent, tablinks;
+    
+    tabcontent = document.getElementsByClassName("route-content");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].classList.remove("active");
+    }
+    
+    tablinks = document.getElementsByClassName("route-tab");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].classList.remove("active");
+    }
+    
+    document.getElementById(routeType).classList.add("active");
+    evt.currentTarget.classList.add("active");
+  }
+
+  // Star rating functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const stars = document.querySelectorAll('.star');
+    const ratingInput = document.getElementById('ratingInput');
+    
+    if (stars.length > 0) {
+      stars.forEach(star => {
+        star.addEventListener('click', function() {
+          const rating = this.getAttribute('data-rating');
+          ratingInput.value = rating;
+          
+          stars.forEach(s => s.classList.remove('active'));
+          for (let i = 0; i < rating; i++) {
+            stars[i].classList.add('active');
+          }
+        });
+        
+        star.addEventListener('mouseover', function() {
+          const rating = this.getAttribute('data-rating');
+          stars.forEach(s => s.classList.remove('active'));
+          for (let i = 0; i < rating; i++) {
+            stars[i].classList.add('active');
+          }
+        });
+      });
+      
+      document.getElementById('starRating').addEventListener('mouseleave', function() {
+        const currentRating = ratingInput.value;
+        stars.forEach(s => s.classList.remove('active'));
+        for (let i = 0; i < currentRating; i++) {
+          stars[i].classList.add('active');
+        }
+      });
+    }
+    
+    // File upload preview
+    const fileInput = document.getElementById('image');
+    const filePreview = document.getElementById('filePreview');
+    const fileUploadText = document.querySelector('.file-upload-text');
+    
+    if (fileInput) {
+      fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            filePreview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 150px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">`;
+            fileUploadText.textContent = file.name;
+          };
+          reader.readAsDataURL(file);
+        } else {
+          filePreview.innerHTML = '';
+          fileUploadText.textContent = 'Choose Image';
+        }
+      });
+    }
+  });
+  
+  // Image modal functions
+  function openImageModal(src) {
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImage');
+    modal.style.display = 'block';
+    modalImg.src = src;
+  }
+  
+  function closeImageModal() {
+    document.getElementById('imageModal').style.display = 'none';
+  }
+  
+  // Close modal on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeImageModal();
+    }
+  });
+  
+  // Save Trek functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const saveTrekBtn = document.getElementById('saveTrekBtn');
+    
+    if (saveTrekBtn) {
+      saveTrekBtn.addEventListener('click', function() {
+        const trekId = this.getAttribute('data-trek-id');
+        const isSaved = this.getAttribute('data-saved') === 'true';
+        const icon = document.getElementById('saveTrekIcon');
+        const text = document.getElementById('saveTrekText');
+        
+        // Prevent double clicks
+        if (this.classList.contains('saving')) {
+          return;
+        }
+        
+        // Add loading state
+        this.classList.add('saving');
+        icon.className = 'fas fa-spinner';
+        text.textContent = 'Processing...';
+        
+        const url = isSaved ? `/trek/${trekId}/unsave` : `/trek/${trekId}/save`;
+        
+        // Create FormData with CSRF token
+        const formData = new FormData();
+        formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+        
+        fetch(url, {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Toggle the saved state
+            const newSavedState = !isSaved;
+            this.setAttribute('data-saved', newSavedState.toString());
+            
+            if (newSavedState) {
+              this.classList.add('saved');
+              icon.className = 'fas fa-bookmark';
+              text.textContent = 'Saved';
+            } else {
+              this.classList.remove('saved');
+              icon.className = 'fas fa-bookmark';
+              text.textContent = 'Save Trek';
+            }
+            
+            // Show success message with toast
+            const message = data.message || (newSavedState ? 'Trek saved to your profile!' : 'Trek removed from saved list!');
+            showToast(message, 'success');
+          } else {
+            // Handle error
+            console.error('Error:', data.message);
+            showToast(data.message || 'Error processing request', 'error');
+            // Reset button state
+            this.setAttribute('data-saved', isSaved.toString());
+            icon.className = 'fas fa-bookmark';
+            text.textContent = isSaved ? 'Saved' : 'Save Trek';
+          }
+        })
+        .catch(error => {
+          console.error('Network error:', error);
+          showToast('Network error. Please try again.', 'error');
+          // Reset button state
+          this.setAttribute('data-saved', isSaved.toString());
+          icon.className = 'fas fa-bookmark';
+          text.textContent = isSaved ? 'Saved' : 'Save Trek';
+        })
+        .finally(() => {
+          // Remove loading state
+          this.classList.remove('saving');
+        });
+      });
+    }
+  });
+  
+  // Toast notification system
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    
+    // Add toast to body
+    document.body.appendChild(toast);
+    
+    // Show toast with animation
+    setTimeout(() => {
+      toast.classList.add('show');
+    }, 100);
+    
+    // Remove toast after 3 seconds
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => {
+        document.body.removeChild(toast);
+      }, 300);
+    }, 3000);
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,474 @@
+{% extends "base.html" %}
+
+{% block title %}Explore Treks - TrekMate{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Explore Page Specific Styles */
+  body {
+    background-color: #a8d5ba;
+  }
+  
+  .explore-container {
+    padding: 100px 20px 50px;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  .explore-header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .explore-header h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #16423c;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .explore-header p {
+    font-size: 1.2rem;
+    color: #555;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Search and Filter Section */
+  .search-filter-section {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 40px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    max-width: 1200px;
+    margin: 0 auto 40px auto;
+  }
+
+  .search-filter-row {
+    display: flex;
+    gap: 20px;
+    align-items: end;
+    flex-wrap: wrap;
+  }
+
+  .filter-group {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .filter-group label {
+    display: block;
+    font-weight: 600;
+    color: #16423c;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .filter-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .filter-input:focus {
+    border-color: #16423c;
+    background: white;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(22, 66, 60, 0.15), 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+  }
+
+  .filter-input:hover {
+    border-color: #68b267;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  }
+
+  /* Custom dropdown styling */
+  select.filter-input {
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%2316423c" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px;
+    padding-right: 40px;
+    cursor: pointer;
+  }
+
+  select.filter-input:hover {
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%2368b267" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+  }
+
+  select.filter-input:focus {
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%2316423c" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+  }
+
+  .search-btn {
+    padding: 12px 25px;
+    background: #16423c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .search-btn:hover {
+    background: #1c4a21;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  }
+
+  /* Trek Cards Grid */
+  .treks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* Trek Card Styling */
+  .trek-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    height: 400px;
+  }
+
+  .trek-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+  }
+
+  .trek-card-image {
+    height: 250px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .trek-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .trek-card:hover .trek-card-image img {
+    transform: scale(1.1);
+  }
+
+  /* Difficulty Badge */
+  .difficulty-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+
+  .difficulty-easy {
+    background: #4CAF50;
+    color: white;
+  }
+
+  .difficulty-moderate {
+    background: #FF9800;
+    color: white;
+  }
+
+  .difficulty-hard {
+    background: #F44336;
+    color: white;
+  }
+
+  .difficulty-challenging {
+    background: #9C27B0;
+    color: white;
+  }
+
+  .difficulty-easy-moderate {
+    background: linear-gradient(45deg, #4CAF50, #FF9800);
+    color: white;
+  }
+
+  /* Card Content */
+  .trek-card-content {
+    padding: 20px;
+    height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .trek-card-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #16423c;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .trek-card-region {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .trek-card-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #888;
+  }
+
+  .trek-card-stat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .trek-card-stat i {
+    color: #16423c;
+  }
+
+  /* No Results Message */
+  .no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+  }
+
+  .no-results h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #16423c;
+  }
+
+  .no-results p {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .explore-header h1 {
+      font-size: 2.5rem;
+    }
+
+    .search-filter-row {
+      flex-direction: column;
+    }
+
+    .filter-group {
+      min-width: 100%;
+    }
+
+    .treks-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .trek-card {
+      height: auto;
+    }
+
+    .trek-card-content {
+      height: auto;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .treks-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  /* Graphics Layer */
+  .graphics {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+  
+  .sun {
+    position: absolute;
+    top: 40px;
+    right: 80px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, #ffb347, #ff8c42);
+    border-radius: 50%;
+    box-shadow: 0 0 40px rgba(255, 140, 66, 0.6);
+    animation: pulse 4s infinite alternate;
+  }
+  
+  .mountains {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+  }
+  
+  @keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.15); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Background Graphics -->
+<div class="graphics">
+  <div class="sun"></div>
+  <div class="mountains">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+      <path fill="#13321f" d="M0,192L80,181.3C160,171,320,149,480,165.3C640,181,800,235,960,229.3C1120,224,1280,160,1360,128L1440,96V320H0Z"></path>
+    </svg>
+  </div>
+</div>
+
+<div class="explore-container">
+  <!-- Page Header -->
+  <div class="explore-header">
+    <h1>Explore Treks</h1>
+    <p>Discover amazing trekking destinations and plan your next adventure</p>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-filter-section">
+    <form method="GET" action="{{ url_for('explore') }}">
+      <div class="search-filter-row">
+        <div class="filter-group">
+          <label for="search">Search Treks</label>
+          <input type="text" id="search" name="search" class="filter-input" 
+                 placeholder="Trek name..." value="{{ search }}">
+        </div>
+        
+        <div class="filter-group">
+          <label for="difficulty">Difficulty Level</label>
+          <select id="difficulty" name="difficulty" class="filter-input">
+            <option value="">All Difficulties</option>
+            <option value="Easy" {% if difficulty_filter == 'Easy' %}selected{% endif %}>Easy</option>
+            <option value="Easy–Moderate" {% if difficulty_filter == 'Easy–Moderate' %}selected{% endif %}>Easy-Moderate</option>
+            <option value="Moderate" {% if difficulty_filter == 'Moderate' %}selected{% endif %}>Moderate</option>
+            <option value="Hard" {% if difficulty_filter == 'Hard' %}selected{% endif %}>Hard</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label for="region">Region</label>
+          <select id="region" name="region" class="filter-input">
+            <option value="">All Regions</option>
+            {% for region in regions %}
+            <option value="{{ region.id }}" {% if region_filter|string == region.id|string %}selected{% endif %}>
+              {{ region.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <button type="submit" class="search-btn">
+            <i class="fas fa-search"></i> Search
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Trek Cards Grid -->
+  {% if treks %}
+  <div class="treks-grid">
+    {% for trek in treks %}
+    <div class="trek-card" onclick="window.location.href='{{ url_for('trek_detail', trek_id=trek.id) }}'">
+      <div class="trek-card-image">
+        <!-- Use proper trek images -->
+        {% if trek.image_filename %}
+          <img src="{{ url_for('static', filename='trekimages/' + trek.image_filename) }}" alt="{{ trek.name }}" onerror="this.src='{{ url_for('static', filename='image/img1.png') }}'">
+        {% else %}
+          {% set image_filename = get_trek_image_filename(trek.name) %}
+          <img src="{{ url_for('static', filename='trekimages/' + image_filename) }}" alt="{{ trek.name }}" onerror="this.src='{{ url_for('static', filename='image/img1.png') }}'">
+        {% endif %}
+        
+        <!-- Difficulty Badge -->
+        {% set difficulty_class = trek.difficulty|lower|replace('–', '-') if trek.difficulty else 'unknown' %}
+        <div class="difficulty-badge difficulty-{{ difficulty_class }}">
+          {{ trek.difficulty }}
+        </div>
+      </div>
+      
+      <div class="trek-card-content">
+        <div>
+          <h3 class="trek-card-title">{{ trek.name }}</h3>
+          <div class="trek-card-region">
+            <i class="fas fa-map-marker-alt"></i>
+            {{ trek.region.name if trek.region else 'Unknown Region' }}
+          </div>
+        </div>
+        
+        <div class="trek-card-stats">
+          {% if trek.height_ft %}
+          <div class="trek-card-stat">
+            <i class="fas fa-mountain"></i>
+            {{ trek.height_ft }} ft
+          </div>
+          {% endif %}
+          {% if trek.distance_km %}
+          <div class="trek-card-stat">
+            <i class="fas fa-route"></i>
+            {{ trek.distance_km }} km
+          </div>
+          {% endif %}
+          {% if trek.duration %}
+          <div class="trek-card-stat">
+            <i class="fas fa-clock"></i>
+            {{ trek.duration }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="no-results">
+    <h3>No treks found</h3>
+    <p>Try adjusting your search criteria or browse all treks.</p>
+    <a href="{{ url_for('explore') }}" class="search-btn" style="display: inline-block; margin-top: 20px; text-decoration: none;">
+      View All Treks
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,559 @@
+{% extends 'base.html' %}
+{% block title %}Trek Feed - Find Trek Buddies | TrekMate{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background: linear-gradient(to bottom right, #d6f0e0, #b8e0c8);
+    font-family: 'Inter', sans-serif;
+  }
+
+  main {
+    padding-top: 90px;
+    padding-bottom: 100px;
+  }
+
+  .tm-feed-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  /* Card styling */
+  .tm-card {
+    background: #f9fefb;
+    border: 1px solid #cde8d4;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    color: #234236;
+    transition: transform 0.2s ease;
+  }
+
+  .tm-card:hover {
+    transform: translateY(-3px);
+  }
+
+  h1.tm-title {
+    color: #16423c;
+    font-weight: 800;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+
+  .tm-sub {
+    color: #3a5a40;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  label {
+    color: #335d3f;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .input {
+    background: #ffffff;
+    color: #16382d;
+    border: 1px solid #b9d5bf;
+    border-radius: 10px;
+    padding: 8px 10px;
+    width: 100%;
+    transition: all 0.2s ease;
+  }
+
+  .input:focus {
+    border-color: #5ca169;
+    box-shadow: 0 0 0 2px rgba(92,161,105,0.25);
+    outline: none;
+  }
+
+  /* Buttons */
+  .button-54 {
+    background: #5ca169;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: background 0.25s ease, transform 0.15s ease;
+  }
+
+  .button-54:hover {
+    background: #4f8c5b;
+    transform: scale(1.02);
+  }
+
+  .btn-danger {
+    background: #dc2626 !important;
+    padding: 3px 10px !important;
+    font-size: 0.75rem !important;
+    border-radius: 6px !important;
+  }
+
+  .btn-danger:hover {
+    background: #b91c1c !important;
+  }
+
+  /* Trek info section */
+  .tm-meta {
+    color: #446d56;
+    font-size: 0.88rem;
+  }
+
+  .tm-info {
+    margin-top: 8px;
+    background: #f2faf4;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    color: #2e4639;
+  }
+
+  .tm-info p {
+    margin: 2px 0;
+  }
+
+  .tm-post-img {
+    width: 100%;
+    border-radius: 12px;
+    margin-top: 10px;
+    max-height: 420px;
+    object-fit: cover;
+  }
+
+  /* Desktop: do not crop images, scale them down within the box */
+  @media (min-width: 992px) {
+    .tm-post-img {
+      max-height: 360px;
+      object-fit: contain;
+      background: #f1f5f9; /* subtle backdrop so letterboxing looks clean */
+    }
+  }
+
+  .tm-badge {
+    background: #eaf5e7;
+    color: #2f522e;
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-top: 8px;
+  }
+
+  .tm-badge.going {
+    background: #eaf5e7;
+    color: #2f522e;
+  }
+
+  .tm-badge.completed {
+    background: #e6f2ff;
+    color: #1e3a8a;
+  }
+
+  /* Like button minimal */
+  .tm-like-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #dc2626;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .tm-like-btn:hover {
+    transform: scale(1.2);
+  }
+
+  .tm-like-btn.reacted {
+    color: #e11d48;
+  }
+
+  textarea.input {
+    resize: none;
+  }
+
+  details summary {
+    color: #2f522e;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  /* Modal */
+  .tm-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+  }
+
+  .tm-modal-backdrop.show {
+    display: flex;
+  }
+
+  .tm-modal {
+    background: #f9fefb;
+    width: min(720px, 92vw);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 6px 30px rgba(0,0,0,0.3);
+  }
+
+  .tm-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #d9f3df;
+    padding: 12px 16px;
+  }
+
+  .tm-modal-header h3 {
+    margin: 0;
+    color: #234236;
+  }
+
+  .tm-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media (max-width: 640px) {
+    .tm-row { grid-template-columns: 1fr; }
+  }
+
+  article.tm-card {
+    margin-bottom: 20px;
+    padding: 16px;
+  }
+
+  article.tm-card h3 {
+    margin: 0;
+    font-size: 1.2rem;
+  }
+
+  .comment-section {
+    margin-top: 10px;
+  }
+
+  .comment-reply {
+    margin-left: 20px;
+    border-left: 2px solid #d4e9d9;
+    padding-left: 10px;
+  }
+
+  /* Comment actions sizing/positioning */
+  .comment-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 6px;
+  }
+
+  .comment-section .button-54 {
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    border-radius: 6px;
+  }
+
+  .btn-link {
+    background: transparent !important;
+    color: #1f2937;
+    padding: 0 !important;
+    border: none;
+    font-size: 0.8rem !important;
+    cursor: pointer;
+  }
+
+  .btn-link-danger {
+    color: #b91c1c !important;
+  }
+
+
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="tm-feed-container">
+  <h1 class="tm-title">Trek Feed</h1>
+  <p class="tm-sub">Share your trek experiences or find buddies to join your next adventure 🌿 You can share your insta or contacts in the comment 🍃 To connect with each other🤷‍♀️</p>
+
+  {% if current_user.is_authenticated %}
+  <div style="display:flex; justify-content:flex-end; margin-bottom:40px;">
+    <button class="button-54" onclick="tmOpenPostModal()">+ New Post</button>
+  </div>
+  {% else %}
+  
+  <div class="tm-card" style="padding:12px; margin:16px 0; text-align:center;">
+    <p><a href="{{ url_for('login') }}">Login</a> to create a post, like or comment.</p>
+  </div>
+  {% endif %}
+
+  {% if current_user.is_authenticated %}
+  <!-- Modal -->
+  <div id="tmPostModal" class="tm-modal-backdrop" aria-hidden="true">
+    <div class="tm-modal tm-card" role="dialog" aria-modal="true">
+      <div class="tm-modal-header">
+        <h3>Create a Post</h3>
+        <button style="color: red; font-size: larger; font-weight: bold; background-color: #c8e2d3; cursor: pointer;" onclick="tmClosePostModal()">X</button>
+      </div>
+      <div style="padding:16px;">
+        <form method="POST" action="{{ url_for('trek_feed') }}" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="tm-row">
+            <div>
+              <label>Trek Name *</label>
+              <input name="trek_name" type="text" required class="input" placeholder="Name of the trek you;re shring">
+            </div>
+            <div>
+              <label>Trek Date (select the date u went or planning to go)</label>
+              <input name="trek_date" type="date" class="input" >
+            </div>
+            <div>
+              <label>Trek Location</label>
+              <input name="trek_location" type="text" class="input" placeholder="Mention where the trek takes place">
+            </div>
+            <div>
+              <label>Your Location</label>
+              <input name="user_location" type="text" class="input" placeholder="your address or city , area ">
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <label>Caption</label>
+            <textarea name="caption" rows="3" class="input" placeholder="Write something about your trek..."></textarea>
+          </div>
+          <div style="margin-top:10px; display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap;">
+            <div>
+              <label>Looking for Buddies to join you on trek?</label>
+              <select name="looking_for_buddies" class="input">
+                <option>No</option>
+                <option>Yes</option>
+              </select>
+            </div>
+            <div>
+              <label>Trek Status</label>
+              <select name="trek_status" class="input">
+                <option value="going">Going on this trek</option>
+                <option value="completed">Completed trek</option>
+              </select>
+            </div>
+            <div>
+              <label>Image</label>
+              <input type="file" name="image" accept="image/*">
+            </div>
+            <div style="margin-left:auto;">
+              <button type="submit" class="button-54">Post</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% for item in posts %}
+  {% set p = item.post %}
+  <article id="post-{{ p.id }}" class="tm-card">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h3>{{ p.trek_name }}</h3>
+        <small class="tm-meta">
+          Published on {{ p.created_at.strftime('%b %d, %Y') }} • by {{ p.user.name }}
+        </small>
+      </div>
+      {% if current_user.is_authenticated and (current_user.id == p.user_id or current_user.is_admin()) %}
+      <form method="POST" action="{{ url_for('delete_post', post_id=p.id) }}" onsubmit="return confirm('Delete this post?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="button-54 btn-danger btn-sm">Delete</button>
+      </form>
+      {% endif %}
+    </div>
+
+    <div class="tm-info">
+      {% if p.trek_location %}<p><strong>📍 Trek Location:</strong> {{ p.trek_location }}</p>{% endif %}
+      {% if p.user_location %}<p><strong>🏡 User Location:</strong> {{ p.user_location }}</p>{% endif %}
+      {% if p.trek_date %}<p><strong>  🗓 Trek Date:</strong> {{ p.trek_date.strftime('%b %d, %Y') }}</p>{% endif %}
+    </div>
+
+    {% if p.caption %}
+    <p style="margin-top:10px; white-space:pre-wrap;">{{ p.caption }}</p>
+    {% endif %}
+    {% if p.looking_for_buddies %}
+    <span class="tm-badge">🔥 Looking for buddies</span>
+    {% endif %}
+    {% if p.trek_status == 'going' %}
+    <span class="tm-badge going">🚶 Going on this trek</span>
+    {% elif p.trek_status == 'completed' %}
+    <span class="tm-badge completed">✅ Completed trek</span>
+    {% endif %}
+    {% if p.image_filename %}
+    <img src="{{ url_for('static', filename='uploads/posts/' ~ p.image_filename) }}" alt="Post Image" class="tm-post-img" loading="lazy">
+    {% endif %}
+
+    <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
+      <form method="POST" action="{{ url_for('react_post', post_id=p.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="tm-like-btn {% if item.reacted %}reacted{% endif %}">
+          <i class="fa fa-heart"></i>
+        </button>
+      </form>
+      <small>{{ item.reactions_count }} likes • {{ item.comments_count }} comments</small>
+    </div>
+
+    <!-- Comments -->
+    <div class="comment-section">
+      {% if current_user.is_authenticated %}
+      <form method="POST" action="{{ url_for('comment_post', post_id=p.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="parent_id" value="">
+        <textarea name="content" rows="2" class="input" placeholder="Write a comment..."></textarea>
+        <div style="text-align:right; margin-top:6px;">
+          <button type="submit" class="button-54">Comment</button>
+        </div>
+      </form>
+      {% else %}
+      <p><a href="{{ url_for('login') }}">Login</a> to comment.</p>
+      {% endif %}
+
+      {% set comments = p.comments | sort(attribute='created_at') %}
+      {% for c in comments if not c.parent_id %}
+      <div class="top-level-comment" style="border-top:1px solid #e0eae2; padding-top:10px; margin-top:10px;">
+        <div><strong>{{ c.user.name }}</strong> • <small>{{ c.created_at.strftime('%b %d, %Y %I:%M %p') }}</small></div>
+        <div style="white-space:pre-wrap; margin-top:4px;">{{ c.content }}</div>
+
+        <div class="comment-actions">
+          {% if current_user.is_authenticated %}
+          <details>
+            <summary>Reply</summary>
+            <form method="POST" action="{{ url_for('comment_post', post_id=p.id) }}" style="margin-top:6px;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="parent_id" value="{{ c.id }}">
+              <textarea name="content" rows="2" class="input" placeholder="Write a reply..."></textarea>
+              <div style="text-align:right; margin-top:6px;">
+                <button type="submit" class="button-54">Reply</button>
+              </div>
+            </form>
+          </details>
+          {% endif %}
+          {% if current_user.is_authenticated and (current_user.id == c.user_id or current_user.is_admin()) %}
+          <form method="POST" action="{{ url_for('delete_post_comment', comment_id=c.id) }}" style="display:inline;" onsubmit="return confirm('Delete this comment?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn-link btn-link-danger">Delete</button>
+          </form>
+          {% endif %}
+        </div>
+
+        <div class="replies-list">
+          {% for r in c.replies %}
+          <div class="comment-reply">
+            <div><strong>{{ r.user.name }}</strong> • <small>{{ r.created_at.strftime('%b %d, %Y %I:%M %p') }}</small></div>
+            <div style="white-space:pre-wrap; margin-top:4px;">{{ r.content }}</div>
+            {% if current_user.is_authenticated and (current_user.id == r.user_id or current_user.is_admin()) %}
+            <div class="comment-actions" style="margin-top:4px;">
+              <form method="POST" action="{{ url_for('delete_post_comment', comment_id=r.id) }}" style="display:inline;" onsubmit="return confirm('Delete this reply?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-link btn-link-danger">Delete</button>
+              </form>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        <div class="replies-toggle" style="margin-top:6px; display:none;">
+          <button type="button" class="btn-link" onclick="tmToggleReplies(this)">Show all replies</button>
+        </div>
+      </div>
+      {% endfor %}
+      <div class="comments-toggle" style="margin-top:8px; display:none;">
+        <button type="button" class="btn-link" onclick="tmToggleComments(this)">Show all comments</button>
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+</section>
+
+{% block extra_js %}
+<script>
+  function tmOpenPostModal() {
+    const m = document.getElementById('tmPostModal');
+    if (m) { m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
+  }
+  function tmClosePostModal() {
+    const m = document.getElementById('tmPostModal');
+    if (m) { m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
+  }
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') tmClosePostModal(); });
+  document.addEventListener('click', e => {
+    const m = document.getElementById('tmPostModal');
+    if(m && m.classList.contains('show') && e.target === m) tmClosePostModal();
+  });
+
+  // Comment collapse/expand: show only first 2 top-level comments by default
+  function tmInitComments() {
+    document.querySelectorAll('.comment-section').forEach(section => {
+      const comments = section.querySelectorAll('.top-level-comment');
+      const toggleWrap = section.querySelector('.comments-toggle');
+      if (comments.length > 2) {
+        comments.forEach((el, idx) => { if (idx > 1) el.style.display = 'none'; });
+        if (toggleWrap) toggleWrap.style.display = 'block';
+      }
+    });
+  }
+
+  function tmToggleComments(btnEl) {
+    const section = btnEl.closest('.comment-section');
+    const comments = section.querySelectorAll('.top-level-comment');
+    const anyHidden = Array.from(comments).some((el, idx) => idx > 1 && el.style.display === 'none');
+    if (anyHidden) {
+      comments.forEach((el, idx) => { if (idx > 1) el.style.display = ''; });
+      btnEl.textContent = 'Show less comments';
+    } else {
+      comments.forEach((el, idx) => { if (idx > 1) el.style.display = 'none'; });
+      btnEl.textContent = 'Show all comments';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', tmInitComments);
+
+  // Replies collapse/expand per top-level comment: show only first 2 by default
+  function tmInitReplies() {
+    document.querySelectorAll('.top-level-comment').forEach(top => {
+      const list = top.querySelector('.replies-list');
+      const toggleWrap = top.querySelector('.replies-toggle');
+      if (!list) return;
+      const replies = list.querySelectorAll('.comment-reply');
+      if (replies.length > 2) {
+        replies.forEach((el, idx) => { if (idx > 1) el.style.display = 'none'; });
+        if (toggleWrap) toggleWrap.style.display = 'block';
+      }
+    });
+  }
+
+  function tmToggleReplies(btnEl) {
+    const top = btnEl.closest('.top-level-comment');
+    if (!top) return;
+    const list = top.querySelector('.replies-list');
+    if (!list) return;
+    const replies = list.querySelectorAll('.comment-reply');
+    const anyHidden = Array.from(replies).some((el, idx) => idx > 1 && el.style.display === 'none');
+    if (anyHidden) {
+      replies.forEach((el, idx) => { if (idx > 1) el.style.display = ''; });
+      btnEl.textContent = 'Show less replies';
+    } else {
+      replies.forEach((el, idx) => { if (idx > 1) el.style.display = 'none'; });
+      btnEl.textContent = 'Show all replies';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', tmInitReplies);
+
+  // Direct delete: no confirmation toggle required for comments/replies
+</script>
+{% endblock %}
+{% endblock %}

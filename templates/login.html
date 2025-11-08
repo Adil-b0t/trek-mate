@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}TrekMate - Login{% endblock %}
+
+{% block extra_css %}
+<style>
+  body{
+
+  background-color: #a8d5ba;
+  }
+  main {
+    max-width: 420px;
+    margin: 6rem auto;
+    padding: 2.5rem;
+    background: rgba(42, 91, 55, 0.78);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    border-left: 6px solid #68b267;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.35);
+    animation: fadeInUp 0.8s ease;
+  }
+
+  .login-header { text-align: center; margin-bottom: 2rem; }
+  .login-header h1 { font-size: 2.4rem; color: #a8d5ba; margin-bottom: 0.5rem; }
+  .login-header p { font-size: 1rem; color: #d8f5db; }
+
+  /* Form groups */
+  .form-group {
+    margin-bottom: 1.3rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    padding: 0.3rem 0.6rem;
+    border-radius: 10px;
+  }
+  .form-group:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    background: rgba(255,255,255,0.05);
+  }
+  .form-group label { display: block; margin-bottom: 0.4rem; font-weight: 600; }
+  .form-group input {
+    width: 100%; padding: 0.85rem; border-radius: 8px;
+    border: 2px solid transparent; outline: none;
+    font-size: 1rem; color: #1c3b26;
+    transition: all 0.3s ease;
+  }
+  .form-group input:focus {
+    border-color: #68b267;
+    box-shadow: 0 0 8px rgba(104,178,103,0.6);
+    background: #f5fff7;
+  }
+
+  /* Button */
+  .btn-login {
+    width: 100%; display: block; margin-top: 1.5rem;
+    font-size: 1.1rem; font-weight: 700;
+    color: #1c3b26; background: #68b267;
+    border: 2px solid #1c3b26;
+    padding: 0.9rem 2rem; border-radius: 40px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    text-align: center; cursor: pointer;
+  }
+  .btn-login:hover {
+    background: #ffb347;
+    border-color: #ffb347;
+    box-shadow: 0 8px 20px rgba(255,179,71,0.45);
+    transform: translateY(-3px) scale(1.05);
+  }
+
+  .alt-link { text-align: center; margin-top: 1.2rem; }
+  .alt-link a { color: #5dc1f2; text-decoration: none; font-weight: 600; }
+  .alt-link a:hover { color: #ffb347; }
+
+  /* Graphics */
+  .graphics { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+  .sun {
+    position: absolute; top: 40px; right: 80px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, #ffb347, #ff8c42);
+    border-radius: 50%; box-shadow: 0 0 40px rgba(255,140,66,0.6);
+    animation: pulse 4s infinite alternate;
+  }
+  .mountains { position: absolute; bottom: 0; width: 100%; }
+  @keyframes pulse { from{transform:scale(1);} to{transform:scale(1.15);} }
+  @keyframes fadeInUp { from {opacity:0; transform: translateY(40px);} to{opacity:1; transform: translateY(0);} }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="graphics">
+    <div class="sun"></div>
+    <div class="mountains">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+        <path fill="#13321f" d="M0,192L80,181.3C160,171,320,149,480,165.3C640,181,800,235,960,229.3C1120,224,1280,160,1360,128L1440,96V320H0Z"></path>
+      </svg>
+    </div>
+  </div>
+
+  <div class="login-container">
+    <div class="login-header">
+      <h1>Login</h1>
+      <p>Welcome back, adventurer!</p>
+    </div>
+    <form method="POST" action="{{ url_for('login') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+      </div>
+      <button type="submit" class="btn-login">Login</button>
+    </form>
+    <div class="alt-link">
+      <p>New here? <a href="{{ url_for('register') }}">Register</a></p>
+      <p>Forgot your password? <a href="{{ url_for('forgot_password') }}">Reset it here</a></p>
+    </div>
+  </div>
+{% endblock %}

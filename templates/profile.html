@@ -1,0 +1,755 @@
+{% extends "base.html" %}
+
+{% block title %}TrekMate - Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+  body{
+    background-color: #a8d5ba;
+  }
+  main {
+    max-width: 1000px;
+    margin: 5rem auto;
+    padding: 2.5rem;
+    background: rgba(42, 91, 55, 0.78);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    border-left: 6px solid #68b267;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.35);
+    animation: fadeInUp 0.8s ease;
+  }
+  
+  /* Basic profile section */
+  .profile-basic {
+    max-width: 500px;
+    margin: 0 auto 3rem auto;
+  }
+
+  .profile-header { 
+    text-align: center; 
+    margin-bottom: 2.5rem; 
+  }
+  .profile-header h1 { 
+    font-size: 2.4rem; 
+    color: #a8d5ba; 
+    margin-bottom: 0.5rem; 
+  }
+  .profile-header p { 
+    font-size: 1rem; 
+    color: #d8f5db; 
+  }
+
+  /* Profile Avatar */
+  .profile-avatar {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .avatar-icon {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #68b267, #a8d5ba);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    animation: pulse 4s infinite alternate;
+  }
+  .avatar-icon i {
+    font-size: 3rem;
+    color: #1c3b26;
+  }
+
+  /* Profile Info Cards */
+  .profile-info {
+    margin-bottom: 2rem;
+  }
+  .info-card {
+    background: rgba(255,255,255,0.1);
+    padding: 1.2rem;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(168, 213, 186, 0.3);
+  }
+  .info-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    background: rgba(255,255,255,0.15);
+  }
+  .info-label {
+    font-size: 0.8rem;
+    color: #a8d5ba;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .info-value {
+    font-size: 1.1rem;
+    color: #d8f5db;
+    font-weight: 500;
+  }
+
+  /* Role Badge */
+  .role-badge {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .role-badge.admin {
+    background: #ffb347;
+    color: #8b4513;
+    box-shadow: 0 2px 8px rgba(255,179,71,0.3);
+  }
+  .role-badge.user {
+    background: #68b267;
+    color: white;
+    box-shadow: 0 2px 8px rgba(104,178,103,0.3);
+  }
+
+  /* Action Buttons */
+  .profile-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+  }
+  .btn-action {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.8rem 1.5rem;
+    border-radius: 30px;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    cursor: pointer;
+    min-width: 150px;
+  }
+  .btn-edit {
+    background: #68b267;
+    color: #1c3b26;
+    border-color: #1c3b26;
+  }
+  .btn-edit:hover {
+    background: #a8d5ba;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(168,213,186,0.4);
+  }
+  .btn-logout {
+    background: #ff6b6b;
+    color: white;
+    border-color: #d63031;
+  }
+  .btn-logout:hover {
+    background: #fd79a8;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(253,121,168,0.4);
+  }
+  .btn-trek-manage {
+    background: #ffb347;
+    color: #8b4513;
+    border-color: #8b4513;
+  }
+  .btn-trek-manage:hover {
+    background: #ffd166;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(255,179,71,0.4);
+  }
+
+  /* Stats Section */
+  .profile-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+  .stat-card {
+    background: rgba(255,255,255,0.08);
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid rgba(168, 213, 186, 0.2);
+    transition: transform 0.3s ease;
+  }
+  .stat-card:hover {
+    transform: translateY(-3px);
+    background: rgba(255,255,255,0.12);
+  }
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffb347;
+    display: block;
+  }
+  .stat-label {
+    font-size: 0.85rem;
+    color: #d8f5db;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.5rem;
+  }
+
+  /* Graphics - same as login/register */
+  .graphics { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    z-index: -1; 
+  }
+  .sun {
+    position: absolute; 
+    top: 40px; 
+    right: 80px;
+    width: 120px; 
+    height: 120px;
+    background: radial-gradient(circle, #ffb347, #ff8c42);
+    border-radius: 50%; 
+    box-shadow: 0 0 40px rgba(255,140,66,0.6);
+    animation: pulse 4s infinite alternate;
+  }
+  .mountains { 
+    position: absolute; 
+    bottom: 0; 
+    width: 100%; 
+  }
+  
+  @keyframes pulse { 
+    from{transform:scale(1);} 
+    to{transform:scale(1.15);} 
+  }
+  @keyframes fadeInUp { 
+    from {opacity:0; transform: translateY(40px);} 
+    to{opacity:1; transform: translateY(0);} 
+  }
+
+  /* Saved Treks Section */
+  .saved-treks-section {
+    margin: 2rem 0;
+  }
+  
+  .section-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .section-header h3 {
+    color: #a8d5ba;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .section-header p {
+    color: #d8f5db;
+    font-size: 0.9rem;
+  }
+  
+  .saved-treks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .saved-trek-card {
+    background: rgba(255,255,255,0.08);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(168, 213, 186, 0.2);
+  }
+  
+  .saved-trek-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    background: rgba(255,255,255,0.12);
+  }
+  
+  .trek-image {
+    position: relative;
+    height: 180px;
+    overflow: hidden;
+  }
+  
+  .trek-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  
+  .saved-trek-card:hover .trek-image img {
+    transform: scale(1.05);
+  }
+  
+  .trek-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.3), transparent, rgba(0,0,0,0.7));
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 15px;
+  }
+  
+  .difficulty-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .difficulty-easy { background: #4CAF50; color: white; }
+  .difficulty-moderate { background: #FF9800; color: white; }
+  .difficulty-hard { background: #F44336; color: white; }
+  .difficulty-easy-moderate { background: linear-gradient(45deg, #4CAF50, #FF9800); color: white; }
+  
+  .remove-saved-btn {
+    background: rgba(220, 53, 69, 0.8);
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .remove-saved-btn:hover {
+    background: rgba(220, 53, 69, 1);
+    transform: scale(1.1);
+  }
+  
+  .trek-info {
+    padding: 20px;
+  }
+  
+  .trek-name {
+    margin: 0 0 10px 0;
+  }
+  
+  .trek-name a {
+    color: #a8d5ba;
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+  
+  .trek-name a:hover {
+    color: #d8f5db;
+  }
+  
+  .trek-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .trek-meta span {
+    color: #d8f5db;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .saved-date {
+    color: #a8d5ba;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  /* Empty saved treks */
+  .empty-saved-treks {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 15px;
+    margin: 2rem 0;
+  }
+  
+  .empty-icon {
+    font-size: 4rem;
+    color: #a8d5ba;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+  }
+  
+  .empty-saved-treks h3 {
+    color: #a8d5ba;
+    margin-bottom: 1rem;
+  }
+  
+  .empty-saved-treks p {
+    color: #d8f5db;
+    margin-bottom: 2rem;
+  }
+  
+  .btn-explore {
+    display: inline-block;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #68b267, #a8d5ba);
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-explore:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(104, 178, 103, 0.4);
+    color: white;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .saved-treks-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    .trek-meta {
+      flex-direction: column;
+      gap: 5px;
+    }
+  }
+
+  /* Toast Notification Styles */
+  .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    z-index: 3000;
+    transform: translateX(400px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    max-width: 350px;
+  }
+
+  .toast.show {
+    transform: translateX(0);
+  }
+
+  .toast-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+  }
+
+  .toast-error {
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
+  }
+
+  .toast-info {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+  }
+
+  /* Responsive toast */
+  @media (max-width: 768px) {
+    .toast {
+      right: 10px;
+      left: 10px;
+      max-width: none;
+      transform: translateY(-100px);
+    }
+    
+    .toast.show {
+      transform: translateY(0);
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="graphics">
+    <div class="sun"></div>
+    <div class="mountains">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+        <path fill="#13321f" d="M0,192L80,181.3C160,171,320,149,480,165.3C640,181,800,235,960,229.3C1120,224,1280,160,1360,128L1440,96V320H0Z"></path>
+      </svg>
+    </div>
+  </div>
+
+  <!-- CSRF Token for AJAX requests -->
+  <form style="display:none;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  </form>
+
+  <main>
+    <div class="profile-basic">
+      <div class="profile-header">
+        <h1>Profile</h1>
+        <p>Welcome back, adventurer!</p>
+      </div>
+
+      <!-- Profile Avatar -->
+      <div class="profile-avatar">
+        <div class="avatar-icon">
+          <i class="fa-solid fa-user-astronaut"></i>
+        </div>
+        <h2 style="color: #a8d5ba; margin: 0;">{{ user.name }}</h2>
+      </div>
+
+      <!-- Profile Information -->
+      <div class="profile-info">
+        <div class="info-card">
+          <div class="info-label">Email Address</div>
+          <div class="info-value">{{ user.email }}</div>
+        </div>
+        
+        <div class="info-card">
+          <div class="info-label">Account Type</div>
+          <div class="info-value">
+            <span class="role-badge {{ 'admin' if user.is_admin() else 'user' }}">
+              {% if user.is_admin() %}
+                <i class="fa-solid fa-crown"></i> Administrator
+              {% else %}
+                <i class="fa-solid fa-user"></i> Explorer
+              {% endif %}
+            </span>
+          </div>
+        </div>
+        
+        <div class="info-card">
+          <div class="info-label">Member Since</div>
+          <div class="info-value">{{ user.created_at.strftime('%B %d, %Y') }}</div>
+        </div>
+      </div>
+
+      <!-- Trek Stats -->
+      <div class="profile-stats">
+        <div class="stat-card">
+          <span class="stat-number">{{ comments_count }}</span>
+          <div class="stat-label">Reviews Posted</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">{{ saved_treks|length }}</span>
+          <div class="stat-label">Saved Treks</div>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="profile-actions">
+        <a href="#" class="btn-action btn-edit" onclick="alert('Profile editing feature coming soon! 🏔️')">
+          <i class="fa-solid fa-edit"></i> Edit Profile
+        </a>
+        {% if user.is_admin() %}
+        <a href="{{ url_for('trek_management') }}" class="btn-action btn-trek-manage">
+          <i class="fa-solid fa-mountain"></i> Trek Management
+        </a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}" class="btn-action btn-logout" 
+           onclick="return confirm('Are you sure you want to logout?')">
+          <i class="fa-solid fa-sign-out-alt"></i> Logout
+        </a>
+      </div>
+    </div>
+
+    <!-- Saved Treks Section -->
+    {% if saved_treks %}
+    <div class="saved-treks-section">
+      <div class="section-header">
+        <h3><i class="fas fa-bookmark"></i> Your Saved Treks</h3>
+        <p>{{ saved_treks|length }} trek{{ 's' if saved_treks|length != 1 else '' }} saved for your adventures</p>
+      </div>
+      
+      <div class="saved-treks-grid">
+        {% for saved_trek, trek in saved_treks %}
+        <div class="saved-trek-card" data-saved-id="{{ saved_trek.id }}" data-trek-id="{{ trek.id }}">
+          <div class="trek-image">
+            {% set image_filename = get_trek_image_filename(trek.name) %}
+            <img src="{{ url_for('static', filename='trekimages/' + image_filename) }}" alt="{{ trek.name }}">
+            <div class="trek-overlay">
+              <div class="trek-difficulty">
+                {% set difficulty_class = trek.difficulty|lower|replace('–', '-') if trek.difficulty else 'moderate' %}
+                <span class="difficulty-badge difficulty-{{ difficulty_class }}">
+                  {{ trek.difficulty or 'Moderate' }}
+                </span>
+              </div>
+              <button class="remove-saved-btn" onclick="removeSavedTrek({{ saved_trek.id}}, {{ trek.id }})" title="Remove from saved">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="trek-info">
+            <h4 class="trek-name">
+              <a href="{{ url_for('trek_detail', trek_id=trek.id) }}">{{ trek.name }}</a>
+            </h4>
+            <div class="trek-meta">
+              {% if trek.height_ft %}<span><i class="fas fa-mountain"></i> {{ trek.height_ft }} ft</span>{% endif %}
+              {% if trek.distance_km %}<span><i class="fas fa-route"></i> {{ trek.distance_km }} km</span>{% endif %}
+              {% if trek.duration %}<span><i class="fas fa-clock"></i> {{ trek.duration }}</span>{% endif %}
+            </div>
+            <div class="saved-date">
+              <i class="fas fa-calendar"></i> Saved on {{ saved_trek.created_at.strftime('%B %d, %Y') }}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="empty-saved-treks">
+      <div class="empty-icon">
+        <i class="fas fa-bookmark"></i>
+      </div>
+      <h3>No Saved Treks Yet</h3>
+      <p>Start exploring and save your favorite treks to see them here!</p>
+      <a href="{{ url_for('explore') }}" class="btn-explore">
+        <i class="fas fa-compass"></i> Explore Treks
+      </a>
+    </div>
+    {% endif %}
+  </main>
+
+  <script>
+    function removeSavedTrek(savedTrekId, trekId) {
+      if (!confirm('Are you sure you want to remove this trek from your saved list?')) {
+        return;
+      }
+      
+      const trekCard = document.querySelector(`[data-saved-id="${savedTrekId}"]`);
+      
+      // Add loading state
+      if (trekCard) {
+        trekCard.style.opacity = '0.5';
+        trekCard.style.pointerEvents = 'none';
+      }
+      
+      const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+      
+      // Create FormData with CSRF token
+      const formData = new FormData();
+      formData.append('csrf_token', csrfToken);
+      
+      fetch(`/saved-trek/${savedTrekId}/remove`, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        // Check if response is ok
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          return response.json();
+        } else {
+          throw new Error('Response is not JSON');
+        }
+      })
+      .then(data => {
+        if (data.success) {
+          // Show success message
+          showToast(data.message || 'Trek removed from saved list', 'success');
+          
+          // Remove the trek card with animation
+          if (trekCard) {
+            trekCard.style.transform = 'scale(0.8)';
+            trekCard.style.opacity = '0';
+            
+            setTimeout(() => {
+              trekCard.remove();
+              
+              // Update saved treks count by finding the correct stat card
+              const statCards = document.querySelectorAll('.stat-card');
+              statCards.forEach(card => {
+                const label = card.querySelector('.stat-label');
+                if (label && label.textContent.trim() === 'Saved Treks') {
+                  const countElement = card.querySelector('.stat-number');
+                  if (countElement) {
+                    const currentCount = parseInt(countElement.textContent) - 1;
+                    countElement.textContent = Math.max(0, currentCount);
+                  }
+                }
+              });
+              
+              // Check if no saved treks left
+              const remainingCards = document.querySelectorAll('.saved-trek-card');
+              if (remainingCards.length === 0) {
+                // Reload page to show empty state
+                window.location.reload();
+              }
+            }, 300);
+          }
+        } else {
+          console.error('API Error:', data.message);
+          // Reset card state
+          if (trekCard) {
+            trekCard.style.opacity = '1';
+            trekCard.style.pointerEvents = 'auto';
+          }
+          showToast(data.message || 'Error removing trek from saved list. Please try again.', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Request failed:', error.message);
+        // Reset card state
+        if (trekCard) {
+          trekCard.style.opacity = '1';
+          trekCard.style.pointerEvents = 'auto';
+        }
+        
+        // Show more specific error message
+        let errorMessage = 'Network error. Please try again.';
+        if (error.message.includes('HTTP error')) {
+          errorMessage = 'Server error. Please try again later.';
+        } else if (error.message.includes('JSON')) {
+          errorMessage = 'Invalid response from server. Please try again.';
+        }
+        
+        showToast(errorMessage, 'error');
+      });
+    }
+    
+    // Toast notification system
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      
+      // Add toast to body
+      document.body.appendChild(toast);
+      
+      // Show toast with animation
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 100);
+      
+      // Remove toast after 3 seconds
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          document.body.removeChild(toast);
+        }, 300);
+      }, 3000);
+    }
+  </script>
+{% endblock %}

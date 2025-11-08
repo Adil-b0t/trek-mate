@@ -1,0 +1,24 @@
+# --- Python general ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# --- Virtual environments ---
+env/
+venv/
+
+# --- Local files ---
+*.db
+instance/
+*.sqlite3
+
+# --- Secrets ---
+.env
+
+# --- Uploads ---
+static/uploads/
+
+# --- System files ---
+.DS_Store
+Thumbs.db

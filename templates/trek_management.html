@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+
+{% block title %}Trek Management - TrekMate{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background-color: #a8d5ba;
+  }
+  
+  .trek-management-container {
+    max-width: 1200px;
+    margin: 5rem auto;
+    padding: 2.5rem;
+    background: rgba(42, 91, 55, 0.78);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    border-left: 6px solid #68b267;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.35);
+    animation: fadeInUp 0.8s ease;
+  }
+  
+  .trek-management-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  
+  .trek-management-header h1 {
+    font-size: 2.4rem;
+    color: #a8d5ba;
+    margin-bottom: 0.5rem;
+  }
+  
+  .trek-management-header p {
+    font-size: 1rem;
+    color: #d8f5db;
+  }
+  
+  .trek-form {
+    background: rgba(255,255,255,0.1);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid rgba(168, 213, 186, 0.3);
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-label {
+    display: block;
+    font-size: 1rem;
+    color: #a8d5ba;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(168, 213, 186, 0.5);
+    background: rgba(255,255,255,0.1);
+    color: #d8f5db;
+    font-size: 1rem;
+  }
+  
+  .form-control:focus {
+    outline: none;
+    border-color: #68b267;
+    box-shadow: 0 0 0 3px rgba(104, 178, 103, 0.3);
+  }
+  
+  .form-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-col {
+    flex: 1;
+  }
+  
+  textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+  }
+  
+  .btn-submit {
+    background: #68b267;
+    color: #1c3b26;
+    border: 2px solid #1c3b26;
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: block;
+    margin: 2rem auto 0;
+    min-width: 200px;
+  }
+  
+  .btn-submit:hover {
+    background: #a8d5ba;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(168,213,186,0.4);
+  }
+  
+  .back-link {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    color: #a8d5ba;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .back-link:hover {
+    color: #d8f5db;
+    transform: translateX(-5px);
+  }
+  
+  .back-link i {
+    margin-right: 0.5rem;
+  }
+  
+  /* Form validation styles */
+  .form-control.is-invalid {
+    border-color: #ff6b6b;
+  }
+  
+  .invalid-feedback {
+    color: #ff6b6b;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+  }
+  
+  /* Success message */
+  .alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+  }
+  
+  .alert-success {
+    background: rgba(104, 178, 103, 0.2);
+    border: 1px solid #68b267;
+    color: #d8f5db;
+  }
+  
+  @media (max-width: 768px) {
+    .form-row {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="trek-management-container">
+  <a href="{{ url_for('profile') }}" class="back-link">
+    <i class="fas fa-arrow-left"></i> Back to Profile
+  </a>
+  
+  <div class="trek-management-header">
+    <h1>Trek Management</h1>
+    <p>Add new treks to the TrekMate database</p>
+  </div>
+  
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  
+  <!-- Trek List Section -->
+  <div class="trek-list-section" style="margin-bottom: 30px; background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px;">
+    <h3 style="color: #a8d5ba; margin-bottom: 15px;">Existing Treks</h3>
+    
+    <div style="max-height: 300px; overflow-y: auto;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="border-bottom: 2px solid #3a5a40;">
+            <th style="padding: 10px; text-align: left; color: #d8f5db;">Trek Name</th>
+            <th style="padding: 10px; text-align: left; color: #d8f5db;">Region</th>
+            <th style="padding: 10px; text-align: center; color: #d8f5db;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for trek in treks %}
+          <tr style="border-bottom: 1px solid rgba(168, 213, 186, 0.3);">
+            <td style="padding: 10px; color: #d8f5db;">{{ trek.name }}</td>
+            <td style="padding: 10px; color: #d8f5db;">{{ trek.region.name if trek.region else 'Unknown' }}</td>
+            <td style="padding: 10px; text-align: center;">
+              <a href="{{ url_for('edit_trek', trek_id=trek.id) }}" style="background: #68b267; color: #1c3b26; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; text-decoration: none; margin-right: 8px; display: inline-block;">
+                <i class="fas fa-edit"></i> Edit
+              </a>
+              <form action="{{ url_for('delete_trek', trek_id=trek.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{ trek.name }}? This action cannot be undone.');">
+                <input type="hidden" name="csrf_token" value="{{ form.csrf_token }}">
+                <button type="submit" style="background: #d64545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <form class="trek-form" method="POST" action="{{ url_for('trek_management') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ form.csrf_token }}">
+    
+    <div class="form-group">
+      <label for="name" class="form-label">Trek Name</label>
+      <input type="text" class="form-control" id="name" name="name" required>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-col">
+        <div class="form-group">
+          <label for="location" class="form-label">Location</label>
+          <input type="text" class="form-control" id="location" name="location" required>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-col">
+        <div class="form-group">
+          <label for="difficulty" class="form-label">Difficulty Level</label>
+          <select class="form-control" id="difficulty" name="difficulty" required>
+            <option value="">Select Difficulty</option>
+            <option value="Easy">Easy</option>
+            <option value="Easy-Moderate">Easy-Moderate</option>
+            <option value="Moderate">Moderate</option>
+            <option value="Hard">Hard</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-col">
+        <div class="form-group">
+          <label for="duration" class="form-label">Duration (hours)</label>
+          <input type="text" class="form-control" id="duration" name="duration" min="1" step="0.5" required>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-col">
+        <div class="form-group">
+          <label for="distance" class="form-label">Distance (km)</label>
+          <input type="number" class="form-control" id="distance" name="distance" min="0.1" step="0.1" required>
+        </div>
+      </div>
+      <div class="form-col">
+        <div class="form-group">
+          <label for="elevation" class="form-label">Elevation Gain (meters)</label>
+          <input type="number" class="form-control" id="elevation" name="elevation" min="0" required>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="description" class="form-label">Description</label>
+      <textarea class="form-control" id="description" name="description" rows="7" required></textarea>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-col">
+        <div class="form-group">
+          <label for="best_season" class="form-label">Best Season</label>
+          <select class="form-control" id="best_season" name="best_season" required>
+            <option value="">Select Season</option>
+            <option value="Winter (Dec-Feb)">Winter (Dec-Feb)</option>
+            <option value="Summer (Mar-May)">Summer (Mar-May)</option>
+            <option value="Monsoon (Jun-Sep)">Monsoon (Jun-Sep)</option>
+            <option value="Post-Monsoon (Oct-Nov)">Post-Monsoon (Oct-Nov)</option>
+            <option value="All Year">All Year</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-col">
+        <div class="form-group">
+          <label for="region" class="form-label">Region</label><br>
+           <label value="Pune – Lonavala – Mulshi Belt">Pune – Lonavala – Mulshi Belt</label><br>
+            <label  value="Mumbai – Panvel – Karjat – Matheran Belt">Mumbai – Panvel – Karjat – Matheran Belt</label><br>
+          <label  value="Satara – Mahabaleshwar – Kaas Belt">Satara – Mahabaleshwar – Kaas Belt</label><br>
+            <label  value="Malshej Ghat Belt">Malshej Ghat Belt</label><br>
+            <label  value="Konkan Belt">Konkan Belt</label><br>
+          <input type="text" class="form-control" id="region" name="region" required>
+          </div>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <h3 class="form-label">How to Reach</h3>
+      
+      <!-- Private Transport Tab -->
+      <div class="form-group">
+        <h4 class="form-label">By Private Vehicle</h4>
+        
+        <!-- From Pune -->
+        <div class="form-group" style="border: 1px solid #3a5a40; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+          <h5 class="form-label">From Pune</h5>
+          
+          <div class="form-row">
+            <div class="form-col">
+              <div class="form-group">
+                <label for="private_pune_distance" class="form-label">Distance (km)</label>
+                <input type="number" class="form-control" id="private_pune_distance" name="private_pune_distance" min="1" step="1">
+              </div>
+            </div>
+            <div class="form-col">
+              <div class="form-group">
+                <label for="private_pune_duration" class="form-label">Duration (hrs)</label>
+                <input type="number" class="form-control" id="private_pune_duration" name="private_pune_duration" min="0.5" step="0.5">
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="private_pune_route_description" class="form-label">Route Description</label>
+            <textarea class="form-control" id="private_pune_route_description" name="private_pune_route_description" rows="2" placeholder="e.g., Start at Swargate → take the Paud Road → continue to Mulshi → follow signs to Pimpri."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="private_pune_road_condition" class="form-label">Road Condition</label>
+            <input type="text" class="form-control" id="private_pune_road_condition" name="private_pune_road_condition" placeholder="e.g., Good, last 5 km is a village road.">
+          </div>
+          
+          <div class="form-group">
+            <label for="private_pune_parking_info" class="form-label">Parking</label>
+            <input type="text" class="form-control" id="private_pune_parking_info" name="private_pune_parking_info" placeholder="e.g., Available near the base; ₹50-₹100 fee.">
+          </div>
+        </div>
+        
+        <!-- From Mumbai -->
+        <div class="form-group" style="border: 1px solid #3a5a40; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+          <h5 class="form-label">From Mumbai</h5>
+          
+          <div class="form-row">
+            <div class="form-col">
+              <div class="form-group">
+                <label for="private_mumbai_distance" class="form-label">Distance (km)</label>
+                <input type="number" class="form-control" id="private_mumbai_distance" name="private_mumbai_distance" min="1" step="1">
+              </div>
+            </div>
+            <div class="form-col">
+              <div class="form-group">
+                <label for="private_mumbai_duration" class="form-label">Duration (hrs)</label>
+                <input type="number" class="form-control" id="private_mumbai_duration" name="private_mumbai_duration" min="0.5" step="0.5">
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="private_mumbai_route_description" class="form-label">Route Description</label>
+            <textarea class="form-control" id="private_mumbai_route_description" name="private_mumbai_route_description" rows="2" placeholder="e.g., Start at Dadar → take the Mumbai-Pune Expressway → exit at Lonavala → follow signs to Mulshi → continue to Pimpri."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="private_mumbai_road_condition" class="form-label">Road Condition</label>
+            <input type="text" class="form-control" id="private_mumbai_road_condition" name="private_mumbai_road_condition" placeholder="e.g., Excellent, last 5 km is a village road.">
+          </div>
+          
+          <div class="form-group">
+            <label for="private_mumbai_parking_info" class="form-label">Parking</label>
+            <input type="text" class="form-control" id="private_mumbai_parking_info" name="private_mumbai_parking_info" placeholder="e.g., Available near the base; ₹50-₹100 fee.">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Public Transport Tab -->
+      <div class="form-group">
+        <h4 class="form-label">By Public Transport</h4>
+        
+        <!-- From Pune -->
+        <div class="form-group" style="border: 1px solid #3a5a40; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+          <h5 class="form-label">From Pune</h5>
+          
+          <div class="form-group">
+            <label for="public_pune_route_steps" class="form-label">Route Steps</label>
+            <textarea class="form-control" id="public_pune_route_steps" name="public_pune_route_steps" rows="3" placeholder="e.g., 1. Take bus from Pune to Mulshi (2 hrs) 2. Take shared auto to base village (30 min)"></textarea>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-col">
+              <div class="form-group">
+                <label for="public_pune_total_time" class="form-label">Total Time</label>
+                <input type="text" class="form-control" id="public_pune_total_time" name="public_pune_total_time" placeholder="e.g., 3-4 hrs">
+              </div>
+            </div>
+            <div class="form-col">
+              <div class="form-group">
+                <label for="public_pune_frequency" class="form-label">Frequency</label>
+                <input type="text" class="form-control" id="public_pune_frequency" name="public_pune_frequency" placeholder="e.g., Hourly buses from 6 AM to 8 PM">
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- From Mumbai -->
+        <div class="form-group" style="border: 1px solid #3a5a40; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+          <h5 class="form-label">From Mumbai</h5>
+          
+          <div class="form-group">
+            <label for="public_mumbai_route_steps" class="form-label">Route Steps</label>
+            <textarea class="form-control" id="public_mumbai_route_steps" name="public_mumbai_route_steps" rows="3" placeholder="e.g., 1. Take train from Mumbai to Lonavala (2 hrs) 2. Take shared auto to base village (45 min)"></textarea>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-col">
+              <div class="form-group">
+                <label for="public_mumbai_total_time" class="form-label">Total Time</label>
+                <input type="text" class="form-control" id="public_mumbai_total_time" name="public_mumbai_total_time" placeholder="e.g., 4-5 hrs">
+              </div>
+            </div>
+            <div class="form-col">
+              <div class="form-group">
+                <label for="public_mumbai_frequency" class="form-label">Frequency</label>
+                <input type="text" class="form-control" id="public_mumbai_frequency" name="public_mumbai_frequency" placeholder="e.g., Trains every 30 min from 5 AM to 11 PM">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="image" class="form-label">Trek Image</label>
+      <input type="file" class="form-control" id="image" name="image" accept="image/*">
+      <small class="text-muted" style="color: #a8d5ba; display: block; margin-top: 0.5rem;">
+        Upload an image for the trek. If not provided, a default image will be used.
+      </small>
+    </div>
+    
+    <button type="submit" class="btn-submit">Add Trek</button>
+  </form>
+</div>
+{% endblock %}

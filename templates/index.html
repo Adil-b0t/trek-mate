@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}TrekMate - Your Personal Trekking Companion{% endblock %}
+
+{% block content %}
+  <!-- Section 1: Hero Section -->
+  <section id="hero" class="hero-section">
+    <div class="content">
+      <img src="{{ url_for('static', filename='img/bac 3.png') }}" alt="background" class="back-3">
+
+      <div class="title">
+        <h3>Your Personal Trekking Companion</h3>
+        <h1>trek</h1>
+        
+      </div>
+
+      <img src="{{ url_for('static', filename='img/bac 2.2.png') }}" alt="background" class="back-2">
+      <img src="{{ url_for('static', filename='img/bac 1.png') }}" alt="background" class="back-1">
+
+      <div class="info-wrap">
+        <p>
+          TrekMate is the ultimate vibe for wanderers who crave adventure, chill moments, and memories that last forever. Whether you're hiking wild trails, camping under starlit skies, or just escaping the city chaos, TrekMate's got your back. From epic mountain views to hidden nature spots, and squad treks to solo escapes, this is where every journey feels like a story worth sharing. With TrekMate, it's not just about reaching the top—it's about living every step like an adventure that hits different.
+        </p>
+      </div>
+
+      <div class="quote">
+        <h1>World is Beautiful Just Step outside</h1> <br>  
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Explore Section -->
+  <section id="explore" class="explore-section">
+    <!-- Fog video -->
+    <video class="fog-video" autoplay muted loop>
+      <source src="{{ url_for('static', filename='fog.mp4') }}" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+
+    <!-- Your page content -->
+    <div class="container">
+        <h1>EXPLORE TREKS THAT TAKE YOU BEYOND THE ORDINARY</h1><br><br>
+        <a href="{{ url_for('explore') }}" class="button-54" style="text-decoration: none; display: inline-block;">EXPLORE</a><br><br>
+        <p>"PACK YOUR BAGS, CHASE THE FOG, AND VIBE WITH NATURE—OUR TREKS ARE ALL ABOUT MEMORIES, NOT MILES."</p>
+    </div>
+  </section>
+
+  <!-- Section 3: Gallery/Slider Section -->
+  <section id="gallery" class="gallery-section">
+    <div class="slider">
+      <div class="list">
+        <div class="item">
+            <img src="{{ url_for('static', filename='image/img1.png') }}">
+            <div class="content">
+                <div class="title">Garbet Plateau </div>
+                <div class="type">Nature's Chill Zone</div>
+                <div class="description">
+                Garbet Plateau is like nature's own chill zone. Think lush green meadows, cool breezes, and a view that feels like a postcard. Perfect for those lazy weekends when you just wanna kick back and soak in the vibes.                    
+                </div>
+                <div class="button">
+                    <a href="{{ url_for('trek_match') }}" class="button-54" role="button" style="text-decoration: none; display: inline-block;">Trek match</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="item">
+            <img src="{{ url_for('static', filename='image/img2.png') }}" alt="">
+            <div class="content">
+                <div class="title">Harishchandragad</div>
+                <div class="type">The OG Cliffhanger</div>
+                <div class="description">
+                 The Konkan Kada cliff is jaw-dropping, the caves feel like time travel, and the view is pure dopamine for your eyes. Harishchandragad is that trek where legends meet sunsets.                    
+                </div>
+                <div class="button">
+                    <a href="{{ url_for('trek_match') }}" class="button-54" role="button" style="text-decoration: none; display: inline-block;">Trek match</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="item">
+            <img src="{{ url_for('static', filename='image/img3.png') }}" alt="">
+            <div class="content">
+                <div class="title">Kalsubai</div>
+                <div class="type">Cloud Surfer's Peak</div>
+                <div class="description">
+                                            At 5,400 ft, Kalsubai isn't just a trek, it's a badge of honor. You're literally above the clouds, watching the sunrise paint the whole valley golden. Every step is a mix of grind + thrill, but the summit flex? Totally unmatched.                    
+                </div>
+                <div class="button">
+                    <a href="{{ url_for('trek_match') }}" class="button-54" role="button" style="text-decoration: none; display: inline-block;">Trek match</a>
+                </div>
+            </div>
+        </div>
+
+          <div class="item">
+            <img src="{{ url_for('static', filename='image/img4.png') }}" alt="">
+            <div class="content">
+                <div class="title">Savlya Ghat</div>
+                <div class="type">Twin Falls, One Vibe</div>
+                <div class="description">
+                Monsoon magic peaks here – with Ring and Devkund waterfalls crashing down side by side like a natural collab. The lush valleys, misty cliffs, and water roaring all around? Feels like stepping into your own cinematic reel.                
+                </div>
+                <div class="button">
+                    <a href="{{ url_for('trek_match') }}" class="button-54" role="button" style="text-decoration: none; display: inline-block;">Trek match</a>
+                </div>
+            </div>
+        </div>
+
+         <div class="item">
+            <img src="{{ url_for('static', filename='image/img5.png') }}" alt="">
+            <div class="content">
+                <div class="title">Harihar Fort</div>
+                <div class="type">Stairs to Heaven</div>
+                <div class="description">
+                    Those legendary 80° steps carved into rock? Pure adrenaline. Harihar tests your grit but rewards you with surreal summit views. It's not just a trek, it's a dare you'll brag about forever.                
+                </div>
+                <div class="button">
+                    <a href="{{ url_for('trek_match') }}" class="button-54" role="button" style="text-decoration: none; display: inline-block;">Trek match</a>
+                </div>
+            </div>
+        </div>
+       <div class="item">
+            <img src="{{ url_for('static', filename='image/img6.jpg') }}" alt="">
+            <div class="content">
+                <div class="title">Rajmachi Fort</div>
+                <div class="type">The Firefly Classic</div>
+                <div class="description">
+                Rajmachi is more than just a trek, it's a full vibe. Think fireflies lighting up the night, fort ruins telling old tales, and stargazing with the crew. It's that timeless trek every trekker's bucket list is incomplete without.                
+                </div>
+                <div class="button">
+                    <a href="{{ url_for('trek_match') }}" class="button-54" role="button" style="text-decoration: none; display: inline-block;">Trek match</a>
+                </div>
+            </div>
+        </div>
+
+         <div class="item">
+            <img src="{{ url_for('static', filename='image/img7.jpg') }}" alt="">
+            <div class="content">
+                <div class="title">Peb Fort(Vikatgad)</div>           
+                <div class="type">The Zen Trek</div>
+                <div class="description">
+                Forest trails, caves, streams, and a breezy summit – Peb keeps it lowkey but beautiful. Perfect for when you wanna escape the chaos and just vibe with nature, calm yet unforgettable.                
+                </div>
+                <div class="button">
+                    <a href="{{ url_for('trek_match') }}" class="button-54" role="button" style="text-decoration: none; display: inline-block;">Trek match</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="thumbnail">
+        <div class="item">
+            <img src="{{ url_for('static', filename='image/img1.png') }}" alt="">
+        </div>
+        <div class="item">
+            <img src="{{ url_for('static', filename='image/img2.png') }}" alt="">
+        </div>
+        <div class="item">
+            <img src="{{ url_for('static', filename='image/img3.png') }}" alt="">
+        </div>
+        <div class="item">
+            <img src="{{ url_for('static', filename='image/img4.png') }}" alt="">
+        </div>
+         <div class="item">
+            <img src="{{ url_for('static', filename='image/img5.png') }}" alt="">
+        </div>
+        <div class="item">
+            <img src="{{ url_for('static', filename='image/img6.jpg') }}" alt="">
+        </div>
+        <div class="item">
+            <img src="{{ url_for('static', filename='image/img7.jpg') }}" alt="">
+        </div>
+    </div>
+
+    <div class="nextPrevArrows">
+        <button class="prev"> < </button>
+        <button class="next"> > </button>
+    </div>
+  </div>
+  </section>
+{% endblock %}

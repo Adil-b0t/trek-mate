@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Notifications - TrekMate{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-notifications {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 20px;
+    }
+    
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #16423c;
+    }
+    
+    .admin-header h1 {
+        color: #16423c;
+        margin: 0;
+        font-size: 2rem;
+    }
+    
+    .admin-actions {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background: #16423c;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #1a4d42;
+        transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+        background: #68b267;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #5a9e59;
+        transform: translateY(-2px);
+    }
+    
+    .notifications-list {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .notification-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 1.5rem;
+        border-bottom: 1px solid #e0e0e0;
+        transition: background-color 0.2s ease;
+    }
+    
+    .notification-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+    
+    .notification-item.unread {
+        background-color: #f0f8ff;
+        border-left: 4px solid #16423c;
+    }
+    
+    .notification-icon {
+        width: 40px;
+        height: 40px;
+        background: #16423c;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .notification-icon i {
+        color: white;
+        font-size: 1.2rem;
+    }
+    
+    .notification-content {
+        flex-grow: 1;
+    }
+    
+    .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+    
+    .notification-title {
+        font-weight: 600;
+        color: #16423c;
+        margin: 0;
+        font-size: 1rem;
+    }
+    
+    .notification-time {
+        color: #888;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+        margin-left: 1rem;
+    }
+    
+    .notification-message {
+        color: #555;
+        line-height: 1.5;
+        margin-bottom: 0.5rem;
+    }
+    
+    .notification-details {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.85rem;
+        color: #777;
+    }
+    
+    .notification-actions {
+        margin-top: 0.5rem;
+    }
+    
+    .notification-actions a {
+        color: #16423c;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        margin-right: 1rem;
+    }
+    
+    .notification-actions a:hover {
+        text-decoration: underline;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #666;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: #ccc;
+        margin-bottom: 1rem;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        margin: 2rem 0;
+        gap: 0.5rem;
+    }
+    
+    .pagination a, .pagination span {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #16423c;
+        transition: all 0.2s ease;
+    }
+    
+    .pagination a:hover {
+        background: #16423c;
+        color: white;
+    }
+    
+    .pagination .current {
+        background: #16423c;
+        color: white;
+        border-color: #16423c;
+    }
+    
+    .stats {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+        min-width: 150px;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #16423c;
+        display: block;
+    }
+    
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-notifications">
+    <div class="admin-header">
+        <h1><i class="fas fa-bell"></i> Notifications</h1>
+        <div class="admin-actions">
+            <button id="mark-all-read" class="btn btn-secondary">
+                <i class="fas fa-check-double"></i> Mark All Read
+            </button>
+            <a href="{{ url_for('home') }}" class="btn btn-primary">
+                <i class="fas fa-home"></i> Back to Home
+            </a>
+        </div>
+    </div>
+    
+    <div class="stats">
+        <div class="stat-card">
+            <span class="stat-number">{{ notifications.total }}</span>
+            <div class="stat-label">Total Notifications</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ notifications.items | selectattr('is_read', 'equalto', False) | list | length }}</span>
+            <div class="stat-label">Unread</div>
+        </div>
+    </div>
+    
+    <div class="notifications-list">
+        {% if notifications.items %}
+            {% for notification in notifications.items %}
+            <div class="notification-item {% if not notification.is_read %}unread{% endif %}">
+                <div class="notification-icon">
+                    <i class="fas fa-comment"></i>
+                </div>
+                
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <h3 class="notification-title">New comment on {{ notification.trek.name if notification.trek else 'Unknown Trek' }}</h3>
+                        <span class="notification-time">{{ notification.created_at.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                    </div>
+                    
+                    <div class="notification-message">
+                        {{ notification.message }}
+                    </div>
+                    
+                    <div class="notification-details">
+                        <span><i class="fas fa-user"></i> {{ notification.user.name if notification.user else 'Unknown User' }}</span>
+                        <span><i class="fas fa-calendar"></i> {{ notification.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        {% if not notification.is_read %}
+                            <span class="badge-unread"><i class="fas fa-circle"></i> Unread</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="notification-actions">
+                        {% if notification.trek_id %}
+                            <a href="{{ url_for('trek_detail', trek_id=notification.trek_id) }}">
+                                <i class="fas fa-external-link-alt"></i> View Trek
+                            </a>
+                        {% endif %}
+                        {% if not notification.is_read %}
+                            <a href="#" class="mark-read" data-id="{{ notification.id }}">
+                                <i class="fas fa-check"></i> Mark Read
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-bell-slash"></i>
+                <h3>No notifications yet</h3>
+                <p>When users comment on treks, you'll see notifications here.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if notifications.pages > 1 %}
+    <div class="pagination">
+        {% if notifications.has_prev %}
+            <a href="{{ url_for('admin_notifications', page=notifications.prev_num) }}">&laquo; Prev</a>
+        {% endif %}
+        
+        {% for page_num in notifications.iter_pages() %}
+            {% if page_num %}
+                {% if page_num != notifications.page %}
+                    <a href="{{ url_for('admin_notifications', page=page_num) }}">{{ page_num }}</a>
+                {% else %}
+                    <span class="current">{{ page_num }}</span>
+                {% endif %}
+            {% else %}
+                <span>...</span>
+            {% endif %}
+        {% endfor %}
+        
+        {% if notifications.has_next %}
+            <a href="{{ url_for('admin_notifications', page=notifications.next_num) }}">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mark all notifications as read
+    document.getElementById('mark-all-read').addEventListener('click', function() {
+        fetch('/admin/notifications/mark-read', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+    
+    // Mark individual notification as read
+    document.querySelectorAll('.mark-read').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const notificationId = this.dataset.id;
+            
+            fetch(`/admin/notifications/${notificationId}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+});
+</script>
+{% endblock %}

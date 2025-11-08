@@ -1,0 +1,632 @@
+{% extends "base.html" %}
+
+{% block title %}TrekMatch - Find Your Perfect Trek{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* TrekMatch Page Specific Styles */
+  body {
+    background-color: #a8d5ba;
+  }
+  
+  .trekmatch-container {
+    padding: 100px 20px 50px;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  .trekmatch-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .trekmatch-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .trekmatch-header h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: #16423c;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .trekmatch-header p {
+    font-size: 1.2rem;
+    color: #555;
+    line-height: 1.6;
+  }
+
+  /* Form Styles */
+  .recommendation-form {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+  }
+
+  .form-section {
+    margin-bottom: 35px;
+  }
+
+  .form-section h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #16423c;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .form-section h3 i {
+    color: #68b267;
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+  }
+
+  .option-card {
+    position: relative;
+    cursor: pointer;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .option-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    margin: 0;
+  }
+
+  .option-label {
+    display: block;
+    padding: 20px 15px;
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 600;
+    color: #555;
+    transition: all 0.3s ease;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .option-card:hover .option-label {
+    border-color: #68b267;
+    background: #f0f8f0;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+
+  .option-card input[type="radio"]:checked + .option-label {
+    background: #16423c;
+    color: white;
+    border-color: #16423c;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(22, 66, 60, 0.3);
+  }
+
+  /* Checkbox styling */
+  .option-card input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    margin: 0;
+  }
+
+  .option-card input[type="checkbox"]:checked + .checkbox-label {
+    background: #16423c;
+    color: white;
+    border-color: #16423c;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(22, 66, 60, 0.3);
+  }
+
+  .option-card input[type="checkbox"]:checked + .checkbox-label::after {
+    content: '✓';
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+  }
+
+  .checkbox-label {
+    position: relative;
+  }
+
+  /* Submit Button */
+  .submit-section {
+    text-align: center;
+    margin-top: 40px;
+  }
+
+  .find-trek-btn {
+    background: linear-gradient(135deg, #16423c, #68b267);
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 700;
+    padding: 18px 40px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 8px 25px rgba(22, 66, 60, 0.3);
+  }
+
+  .find-trek-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(22, 66, 60, 0.4);
+  }
+
+  .find-trek-btn:active {
+    transform: translateY(-1px);
+  }
+
+  /* Results Section */
+  .recommendations-section {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    margin-top: 30px;
+  }
+
+  .recommendations-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .recommendations-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #16423c;
+    margin-bottom: 10px;
+  }
+
+  .recommendations-header p {
+    color: #666;
+    font-size: 1.1rem;
+  }
+
+  /* Trek Cards for Results */
+  .recommended-treks {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+  }
+
+  .recommended-trek-card {
+    background: #f8f9fa;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+  }
+
+  .recommended-trek-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border-color: #68b267;
+  }
+
+  .trek-card-image {
+    height: 200px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .trek-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .recommended-trek-card:hover .trek-card-image img {
+    transform: scale(1.05);
+  }
+
+  .match-score {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #16423c;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .trek-card-content {
+    padding: 20px;
+  }
+
+  .trek-card-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #16423c;
+    margin-bottom: 10px;
+  }
+
+  .trek-card-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 15px;
+  }
+
+  .trek-card-reason {
+    background: #e8f5e8;
+    color: #16423c;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-style: italic;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .trekmatch-header h1 {
+      font-size: 2.5rem;
+    }
+    
+    .recommendation-form {
+      padding: 25px;
+    }
+    
+    .options-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .recommended-treks {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Graphics Layer */
+  .graphics {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+  
+  .sun {
+    position: absolute;
+    top: 40px;
+    right: 80px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, #ffb347, #ff8c42);
+    border-radius: 50%;
+    box-shadow: 0 0 40px rgba(255, 140, 66, 0.6);
+    animation: pulse 4s infinite alternate;
+  }
+  
+  .mountains {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+  }
+  
+  @keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.15); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Background Graphics -->
+<div class="graphics">
+  <div class="sun"></div>
+  <div class="mountains">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+      <path fill="#13321f" d="M0,192L80,181.3C160,171,320,149,480,165.3C640,181,800,235,960,229.3C1120,224,1280,160,1360,128L1440,96V320H0Z"></path>
+    </svg>
+  </div>
+</div>
+
+<div class="trekmatch-container">
+  <div class="trekmatch-wrapper">
+    <!-- Header -->
+    <div class="trekmatch-header">
+      <h1>🧾 TrekMatch</h1>
+      <p>Answer a few quick questions and we'll recommend the perfect trek for you from our collection of 28 amazing destinations!</p>
+    </div>
+
+    <!-- Recommendation Form -->
+    <form method="POST" action="{{ url_for('trek_match') }}" class="recommendation-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <!-- Age Group -->
+      <div class="form-section">
+        <h3><i class="fas fa-birthday-cake"></i> Age Group</h3>
+        <div class="options-grid">
+          <div class="option-card">
+            <input type="radio" name="age_group" value="under_18" id="age_under_18">
+            <label for="age_under_18" class="option-label">Below 18</label>
+          </div>
+          <div class="option-card">
+            <input type="radio" name="age_group" value="18_40" id="age_18_40">
+            <label for="age_18_40" class="option-label">18–40</label>
+          </div>
+          <div class="option-card">
+            <input type="radio" name="age_group" value="41_60" id="age_41_60">
+            <label for="age_41_60" class="option-label">41–60</label>
+          </div>
+          <div class="option-card">
+            <input type="radio" name="age_group" value="over_60" id="age_over_60">
+            <label for="age_over_60" class="option-label">60+</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Health Issues -->
+      <div class="form-section">
+        <h3><i class="fas fa-heartbeat"></i> Any Health Issues? <span style="font-size: 0.9rem; color: #666;">(Select all that apply)</span></h3>
+        <div class="options-grid">
+          <div class="option-card">
+            <input type="checkbox" name="health_issues" value="none" id="health_none" onchange="handleNoneSelection(this, 'health_issues')">
+            <label for="health_none" class="option-label checkbox-label">None</label>
+          </div>
+          <div class="option-card">
+            <input type="checkbox" name="health_issues" value="asthma_breathing" id="health_asthma" onchange="handleOtherSelection(this, 'health_none')">
+            <label for="health_asthma" class="option-label checkbox-label">Asthma / Breathing problems</label>
+          </div>
+          <div class="option-card">
+            <input type="checkbox" name="health_issues" value="heart_bp" id="health_heart" onchange="handleOtherSelection(this, 'health_none')">
+            <label for="health_heart" class="option-label checkbox-label">Heart issues / High BP</label>
+          </div>
+          <div class="option-card">
+            <input type="checkbox" name="health_issues" value="diabetes" id="health_diabetes" onchange="handleOtherSelection(this, 'health_none')">
+            <label for="health_diabetes" class="option-label checkbox-label">Diabetes</label>
+          </div>
+          <div class="option-card">
+            <input type="checkbox" name="health_issues" value="joint_knee" id="health_joint" onchange="handleOtherSelection(this, 'health_none')">
+            <label for="health_joint" class="option-label checkbox-label">Joint / Knee problems</label>
+          </div>
+          <div class="option-card">
+            <input type="checkbox" name="health_issues" value="surgery_injury" id="health_surgery" onchange="handleOtherSelection(this, 'health_none')">
+            <label for="health_surgery" class="option-label checkbox-label">Recent surgery or injury</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fitness Level -->
+      <div class="form-section">
+        <h3><i class="fas fa-dumbbell"></i> Fitness Level</h3>
+        <div class="options-grid">
+          <div class="option-card">
+            <input type="radio" name="fitness_level" value="low" id="fitness_low">
+            <label for="fitness_low" class="option-label">Low</label>
+          </div>
+          <div class="option-card">
+            <input type="radio" name="fitness_level" value="medium" id="fitness_medium">
+            <label for="fitness_medium" class="option-label">Medium</label>
+          </div>
+          <div class="option-card">
+            <input type="radio" name="fitness_level" value="high" id="fitness_high">
+            <label for="fitness_high" class="option-label">High</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trekking Experience -->
+      <div class="form-section">
+        <h3><i class="fas fa-hiking"></i> Trekking Experience</h3>
+        <div class="options-grid">
+          <div class="option-card">
+            <input type="radio" name="experience" value="first_time" id="exp_first">
+            <label for="exp_first" class="option-label">First time</label>
+          </div>
+          <div class="option-card">
+            <input type="radio" name="experience" value="few_treks" id="exp_few">
+            <label for="exp_few" class="option-label">Few treks done</label>
+          </div>
+          <div class="option-card">
+            <input type="radio" name="experience" value="experienced" id="exp_experienced">
+            <label for="exp_experienced" class="option-label">Experienced</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preferred Trek Type -->
+      <div class="form-section">
+        <h3><i class="fas fa-mountain"></i> Preferred Trek Type <span style="font-size: 0.9rem; color: #666;">(Select all that apply)</span></h3>
+        <div class="options-grid">
+          <div class="option-card">
+            <input type="checkbox" name="trek_type" value="easy_short" id="type_easy">
+            <label for="type_easy" class="option-label checkbox-label">Easy & Short</label>
+          </div>
+          <div class="option-card">
+            <input type="checkbox" name="trek_type" value="scenic_waterfall" id="type_scenic">
+            <label for="type_scenic" class="option-label checkbox-label">Scenic / Waterfall</label>
+          </div>
+          <div class="option-card">
+            <input type="checkbox" name="trek_type" value="fort_history" id="type_fort">
+            <label for="type_fort" class="option-label checkbox-label">Fort / History</label>
+          </div>
+          <div class="option-card">
+            <input type="checkbox" name="trek_type" value="adventure_long" id="type_adventure">
+            <label for="type_adventure" class="option-label checkbox-label">Adventure / Long</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="submit-section">
+        <button type="submit" class="find-trek-btn">
+          <i class="fas fa-search"></i> Find My Perfect Trek
+        </button>
+      </div>
+    </form>
+
+    <!-- Recommendations Results -->
+    {% if recommendations %}
+    <div class="recommendations-section" id="recommendations-section">
+      <div class="recommendations-header">
+        <h2>🎯 Perfect Treks for You!</h2>
+        <p>Based on your preferences, here are {{ recommendations|length }} treks that match your profile</p>
+      </div>
+
+      <div class="recommended-treks">
+        {% for recommendation in recommendations %}
+        <div class="recommended-trek-card" onclick="window.location.href='{{ url_for('trek_detail', trek_id=recommendation.trek.id) }}'">
+          <div class="trek-card-image">
+            {% set image_filename = get_trek_image_filename(recommendation.trek.name) %}
+            <img src="{{ url_for('static', filename='trekimages/' + image_filename) }}" alt="{{ recommendation.trek.name }}">
+            <div class="match-score">{{ recommendation.match_score }}% Match</div>
+          </div>
+          <div class="trek-card-content">
+            <h3 class="trek-card-title">{{ recommendation.trek.name }}</h3>
+            <div class="trek-card-details">
+              <span><i class="fas fa-map-marker-alt"></i> {{ recommendation.trek.region.name if recommendation.trek.region else 'Maharashtra' }}</span>
+              <span><i class="fas fa-signal"></i> {{ recommendation.trek.difficulty or 'Moderate' }}</span>
+            </div>
+            <div class="trek-card-reason">
+              {{ recommendation.reason }}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+// Auto-scroll to recommendations after form submission
+{% if recommendations %}
+document.addEventListener('DOMContentLoaded', function() {
+  const recommendationsSection = document.getElementById('recommendations-section');
+  if (recommendationsSection) {
+    // Smooth scroll to recommendations with offset for header
+    setTimeout(function() {
+      const offsetTop = recommendationsSection.offsetTop - 100;
+      window.scrollTo({
+        top: offsetTop,
+        behavior: 'smooth'
+      });
+    }, 100);
+  }
+});
+{% endif %}
+
+// Form submission enhancement
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.querySelector('.recommendation-form');
+  const submitBtn = document.querySelector('.find-trek-btn');
+  
+  if (form && submitBtn) {
+    form.addEventListener('submit', function(e) {
+      // Validate all required fields
+      let isValid = true;
+      let errorMessage = '';
+      
+      // Check age group (radio button)
+      const ageGroup = document.querySelector('input[name="age_group"]:checked');
+      if (!ageGroup) {
+        isValid = false;
+        errorMessage += 'Please select your age group.\n';
+      }
+      
+      // Check health issues (checkboxes)
+      const healthCheckboxes = document.querySelectorAll('input[name="health_issues"]:checked');
+      if (healthCheckboxes.length === 0) {
+        isValid = false;
+        errorMessage += 'Please select at least one health option.\n';
+      }
+      
+      // Check fitness level (radio button)
+      const fitnessLevel = document.querySelector('input[name="fitness_level"]:checked');
+      if (!fitnessLevel) {
+        isValid = false;
+        errorMessage += 'Please select your fitness level.\n';
+      }
+      
+      // Check experience (radio button)
+      const experience = document.querySelector('input[name="experience"]:checked');
+      if (!experience) {
+        isValid = false;
+        errorMessage += 'Please select your trekking experience.\n';
+      }
+      
+      // Check trek type (checkboxes)
+      const trekTypeCheckboxes = document.querySelectorAll('input[name="trek_type"]:checked');
+      if (trekTypeCheckboxes.length === 0) {
+        isValid = false;
+        errorMessage += 'Please select at least one trek type preference.\n';
+      }
+      
+      if (!isValid) {
+        alert(errorMessage.trim());
+        e.preventDefault();
+        return;
+      }
+      
+      // Show loading state
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finding Perfect Treks...';
+      submitBtn.disabled = true;
+      
+      // Re-enable after a short delay (form will submit)
+      setTimeout(function() {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }, 3000);
+    });
+  }
+});
+
+// Handle "None" selection for health issues
+function handleNoneSelection(checkbox, groupName) {
+  if (checkbox.checked) {
+    // Uncheck all other checkboxes in the group
+    const otherCheckboxes = document.querySelectorAll(`input[name="${groupName}"]:not([value="none"])`);
+    otherCheckboxes.forEach(cb => cb.checked = false);
+  }
+}
+
+// Handle other selections (uncheck "None" when other options are selected)
+function handleOtherSelection(checkbox, noneCheckboxId) {
+  if (checkbox.checked) {
+    // Uncheck the "None" option
+    const noneCheckbox = document.getElementById(noneCheckboxId);
+    if (noneCheckbox) {
+      noneCheckbox.checked = false;
+    }
+  }
+}
+</script>
+{% endblock %}

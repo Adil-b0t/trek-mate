@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Trek - {{ trek.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { background-color: #a8d5ba; }
+  .edit-container {
+    max-width: 1200px;
+    margin: 3.5rem auto;
+    background: rgba(42,91,55,0.85);
+    border-radius: 16px;
+    padding: 2.25rem;
+    border-left: 6px solid #68b267;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    margin-bottom: 70px; /* keep footer at bottom */
+  }
+  .header { display:flex; align-items:center; justify-content:space-between; margin-bottom: 0.75rem; }
+  .header h1 { color:#e0f4e4; font-size:1.9rem; line-height:1.2; }
+  .back-link { color:#a8d5ba; text-decoration:none; font-weight:600; }
+  .back-link:hover { color:#d8f5db; }
+
+  .section {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(168,213,186,0.28);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-top: 1rem;
+  }
+
+  .form-row { display:flex; gap:1.25rem; flex-wrap: wrap; }
+  .form-col { flex:1 1 320px; min-width: 280px; }
+
+  .form-label { color:#cfead5; font-weight:600; margin:0.35rem 0; display:block; }
+  .form-control {
+    width: 100%;
+    padding: 0.8rem 0.95rem;
+    border-radius: 10px;
+    border:1px solid rgba(168,213,186,0.55);
+    background: rgba(255,255,255,0.12);
+    color:#f0fff4;
+    font-size: 0.98rem;
+  }
+  .form-control::placeholder { color: rgba(240,255,244,0.6); }
+  .form-control:focus { outline:none; border-color:#68b267; box-shadow: 0 0 0 3px rgba(104,178,103,0.28); }
+  textarea.form-control { min-height: 120px; }
+
+  .btn {
+    background:#68b267;
+    color:#0f2b18;
+    border:2px solid #0f2b18;
+    padding:0.75rem 1.6rem;
+    border-radius: 28px;
+    cursor:pointer;
+    font-weight:700;
+    display:inline-block;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 16px rgba(0,0,0,0.25); background:#7dc67c; }
+
+  .current-image { margin-top: 0.5rem; }
+  .current-image img { max-width: 260px; border-radius: 10px; border:1px solid rgba(168,213,186,0.4); }
+
+  @media (max-width: 768px) {
+    .edit-container { padding: 1.25rem; margin: 1.5rem 0.75rem; }
+    .header h1 { font-size: 1.4rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-container">
+  <div class="header">
+    <h1>Edit Trek: {{ trek.name }}</h1>
+    <a class="back-link" href="{{ url_for('trek_management') }}">← Back to Trek Management</a>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="{{ url_for('edit_trek', trek_id=trek.id) }}" enctype="multipart/form-data" class="section">
+    <input type="hidden" name="csrf_token" value="{{ form.csrf_token }}">
+
+    <div class="form-col">
+      <label class="form-label" for="name">Trek Name</label>
+      <input class="form-control" id="name" name="name" type="text" value="{{ trek.name }}" required>
+    </div>
+
+    <div class="form-row">
+      <div class="form-col">
+        <label class="form-label" for="location">Location</label>
+        <input class="form-control" id="location" name="location" type="text" value="{{ trek.base_village }}" required>
+      </div>
+      <div class="form-col">
+        <label class="form-label" for="region">Region</label>
+        <input class="form-control" id="region" name="region" type="text" value="{{ trek.region.name if trek.region else '' }}" required>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-col">
+        <label class="form-label" for="difficulty">Difficulty</label>
+        <select class="form-control" id="difficulty" name="difficulty" required>
+          {% set d=trek.difficulty %}
+          <option value="">Select Difficulty</option>
+          <option value="Easy" {{ 'selected' if d=='Easy' else '' }}>Easy</option>
+          <option value="Easy-Moderate" {{ 'selected' if d=='Easy-Moderate' or d=='Easy–Moderate' else '' }}>Easy-Moderate</option>
+          <option value="Moderate" {{ 'selected' if d=='Moderate' else '' }}>Moderate</option>
+          <option value="Hard" {{ 'selected' if d=='Hard' else '' }}>Hard</option>
+        </select>
+      </div>
+      <div class="form-col">
+        <label class="form-label" for="duration">Duration (hours)</label>
+        <input class="form-control" id="duration" name="duration" type="text" value="{{ trek.duration.replace(' hours','') if trek.duration else '' }}" required>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-col">
+        <label class="form-label" for="distance">Distance (km)</label>
+        <input class="form-control" id="distance" name="distance" type="number" step="0.1" value="{{ '%.1f' % trek.distance_km if trek.distance_km is not none else '' }}" required>
+      </div>
+      <div class="form-col">
+        <label class="form-label" for="elevation">Elevation Gain (meters)</label>
+        <input class="form-control" id="elevation" name="elevation" type="number" value="{{ trek.height_m or 0 }}" required>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-col">
+        <label class="form-label" for="best_season">Best Season</label>
+        <input class="form-control" id="best_season" name="best_season" type="text" value="{{ trek.best_season or '' }}" placeholder="e.g., Post-Monsoon (Oct-Nov)" required>
+      </div>
+    </div>
+
+    <div class="form-col">
+      <label class="form-label" for="description">Description</label>
+      <textarea class="form-control" id="description" name="description" rows="6">{{ trek.gen_z_intro[:-3] if trek.gen_z_intro and trek.gen_z_intro.endswith('...') else trek.gen_z_intro }}</textarea>
+    </div>
+
+    <div class="section">
+      <h3 class="form-label">By Private Vehicle</h3>
+      <h4 class="form-label">From Pune</h4>
+      <div class="form-row">
+        <div class="form-col">
+          <label class="form-label" for="private_pune_distance">Distance (km)</label>
+          <input class="form-control" id="private_pune_distance" name="private_pune_distance" type="number" step="1" value="{{ pune_private.distance_km if pune_private else '' }}">
+        </div>
+        <div class="form-col">
+          <label class="form-label" for="private_pune_duration">Duration (hrs)</label>
+          <input class="form-control" id="private_pune_duration" name="private_pune_duration" type="number" step="0.5" value="{{ (pune_private.duration or '').replace(' hrs','') if pune_private else '' }}">
+        </div>
+      </div>
+      <label class="form-label" for="private_pune_route_description">Route Description</label>
+      <textarea class="form-control" id="private_pune_route_description" name="private_pune_route_description" rows="2">{{ pune_private.route_description if pune_private else '' }}</textarea>
+      <div class="form-row">
+        <div class="form-col">
+          <label class="form-label" for="private_pune_road_condition">Road Condition</label>
+          <input class="form-control" id="private_pune_road_condition" name="private_pune_road_condition" type="text" value="{{ pune_private.road_condition if pune_private else '' }}">
+        </div>
+        <div class="form-col">
+          <label class="form-label" for="private_pune_parking_info">Parking</label>
+          <input class="form-control" id="private_pune_parking_info" name="private_pune_parking_info" type="text" value="{{ pune_private.parking_info if pune_private else '' }}">
+        </div>
+      </div>
+
+      <h4 class="form-label" style="margin-top:1rem;">From Mumbai</h4>
+      <div class="form-row">
+        <div class="form-col">
+          <label class="form-label" for="private_mumbai_distance">Distance (km)</label>
+          <input class="form-control" id="private_mumbai_distance" name="private_mumbai_distance" type="number" step="1" value="{{ mumbai_private.distance_km if mumbai_private else '' }}">
+        </div>
+        <div class="form-col">
+          <label class="form-label" for="private_mumbai_duration">Duration (hrs)</label>
+          <input class="form-control" id="private_mumbai_duration" name="private_mumbai_duration" type="number" step="0.5" value="{{ (mumbai_private.duration or '').replace(' hrs','') if mumbai_private else '' }}">
+        </div>
+      </div>
+      <label class="form-label" for="private_mumbai_route_description">Route Description</label>
+      <textarea class="form-control" id="private_mumbai_route_description" name="private_mumbai_route_description" rows="2">{{ mumbai_private.route_description if mumbai_private else '' }}</textarea>
+      <div class="form-row">
+        <div class="form-col">
+          <label class="form-label" for="private_mumbai_road_condition">Road Condition</label>
+          <input class="form-control" id="private_mumbai_road_condition" name="private_mumbai_road_condition" type="text" value="{{ mumbai_private.road_condition if mumbai_private else '' }}">
+        </div>
+        <div class="form-col">
+          <label class="form-label" for="private_mumbai_parking_info">Parking</label>
+          <input class="form-control" id="private_mumbai_parking_info" name="private_mumbai_parking_info" type="text" value="{{ mumbai_private.parking_info if mumbai_private else '' }}">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3 class="form-label">By Public Transport</h3>
+      <h4 class="form-label">From Pune</h4>
+      <label class="form-label" for="public_pune_route_steps">Route Steps</label>
+      <textarea class="form-control" id="public_pune_route_steps" name="public_pune_route_steps" rows="3">{{ pune_public.route_steps if pune_public else '' }}</textarea>
+      <div class="form-row">
+        <div class="form-col">
+          <label class="form-label" for="public_pune_total_time">Total Time</label>
+          <input class="form-control" id="public_pune_total_time" name="public_pune_total_time" type="text" value="{{ pune_public.total_time if pune_public else '' }}">
+        </div>
+        <div class="form-col">
+          <label class="form-label" for="public_pune_frequency">Frequency</label>
+          <input class="form-control" id="public_pune_frequency" name="public_pune_frequency" type="text" value="{{ pune_public.frequency if pune_public else '' }}">
+        </div>
+      </div>
+
+      <h4 class="form-label" style="margin-top:1rem;">From Mumbai</h4>
+      <label class="form-label" for="public_mumbai_route_steps">Route Steps</label>
+      <textarea class="form-control" id="public_mumbai_route_steps" name="public_mumbai_route_steps" rows="3">{{ mumbai_public.route_steps if mumbai_public else '' }}</textarea>
+      <div class="form-row">
+        <div class="form-col">
+          <label class="form-label" for="public_mumbai_total_time">Total Time</label>
+          <input class="form-control" id="public_mumbai_total_time" name="public_mumbai_total_time" type="text" value="{{ mumbai_public.total_time if mumbai_public else '' }}">
+        </div>
+        <div class="form-col">
+          <label class="form-label" for="public_mumbai_frequency">Frequency</label>
+          <input class="form-control" id="public_mumbai_frequency" name="public_mumbai_frequency" type="text" value="{{ mumbai_public.frequency if mumbai_public else '' }}">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <label class="form-label" for="image">Trek Image</label>
+      <input class="form-control" id="image" name="image" type="file" accept="image/*">
+      <div class="current-image">
+        <div class="form-label">Current Image</div>
+        {% if trek.image_filename %}
+          <img src="{{ url_for('static', filename='trekimages/' ~ trek.image_filename) }}" alt="{{ trek.name }} image" onerror="this.style.display='none'" />
+        {% else %}
+          {% set fallback = get_trek_image_filename(trek.name) %}
+          <img src="{{ url_for('static', filename='trekimages/' ~ fallback) }}" alt="{{ trek.name }} image" onerror="this.style.display='none'" />
+        {% endif %}
+      </div>
+    </div>
+
+    <div style="margin-top: 1rem;">
+      <button type="submit" class="btn">Save Changes</button>
+      <a href="{{ url_for('trek_management') }}" class="btn" style="background:#a8d5ba;">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
