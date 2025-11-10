@@ -1428,17 +1428,31 @@ def delete_comment(comment_id):
     
     # Delete associated image file if exists
     if comment.image_filename:
-        image_path = os.path.join(app.config['UPLOAD_FOLDER'], comment.image_filename)
-        if os.path.exists(image_path):
-            try:
-                os.remove(image_path)
-            except OSError:
-                pass  # File deletion failed, but continue with comment deletion
+        # If it's a URL (e.g., Cloudinary), do not try to delete locally
+        try:
+            is_url = isinstance(comment.image_filename, str) and (
+                comment.image_filename.startswith('http://') or comment.image_filename.startswith('https://')
+            )
+        except Exception:
+            is_url = False
+        if not is_url:
+            local_dir = os.path.join(basedir, 'static', 'uploads', 'comments')
+            image_path = os.path.join(local_dir, comment.image_filename)
+            if os.path.exists(image_path):
+                try:
+                    os.remove(image_path)
+                except OSError:
+                    pass  # Ignore file deletion errors
     
-    db.session.delete(comment)
-    db.session.commit()
-    
-    flash('Comment deleted successfully.', 'success')
+    try:
+        # Delete notifications referencing this comment to avoid FK constraint errors
+        AdminNotification.query.filter_by(comment_id=comment.id).delete(synchronize_session=False)
+        db.session.delete(comment)
+        db.session.commit()
+        flash('Comment deleted successfully.', 'success')
+    except Exception:
+        db.session.rollback()
+        flash('Failed to delete comment due to a server error.', 'error')
     return redirect(url_for('trek_detail', trek_id=trek_id))
 
 def calculate_trek_match(trek, age_group, health_issues_list, fitness_level, experience, trek_types_list):
