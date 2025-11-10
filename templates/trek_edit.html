@@ -231,7 +231,11 @@
       <div class="current-image">
         <div class="form-label">Current Image</div>
         {% if trek.image_filename %}
-          <img src="{{ url_for('static', filename='trekimages/' ~ trek.image_filename) }}" alt="{{ trek.name }} image" onerror="this.style.display='none'" />
+          {% if trek.image_filename is url %}
+            <img src="{{ trek.image_filename }}" alt="{{ trek.name }} image" onerror="this.style.display='none'" />
+          {% else %}
+            <img src="{{ url_for('static', filename='trekimages/' ~ trek.image_filename) }}" alt="{{ trek.name }} image" onerror="this.style.display='none'" />
+          {% endif %}
         {% else %}
           {% set fallback = get_trek_image_filename(trek.name) %}
           <img src="{{ url_for('static', filename='trekimages/' ~ fallback) }}" alt="{{ trek.name }} image" onerror="this.style.display='none'" />

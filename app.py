@@ -21,6 +21,14 @@ try:
 except Exception:
     Image = None
 
+# Optional: Cloudinary for persistent image hosting on free tier
+try:
+    import cloudinary
+    import cloudinary.uploader
+except Exception:
+    cloudinary = None
+from sqlalchemy import or_, func
+
 app = Flask(__name__)
 load_dotenv()
 app.secret_key = os.getenv("SECRET_KEY")
@@ -48,6 +56,12 @@ if db_url.startswith('postgres://'):
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_size': 5,
+    'max_overflow': 5,
+    'pool_recycle': 1800,
+    'pool_pre_ping': True,
+}
 
 mail = Mail(app)
 
@@ -62,6 +76,28 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # OpenWeatherMap API Configuration
 OPENWEATHER_BASE_URL = os.getenv('OPENWEATHER_BASE_URL', 'https://api.openweathermap.org/data/2.5/weather')
+
+# Cloudinary configuration (if env present and library installed)
+CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
+CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME')
+CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
+CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET')
+
+CLOUDINARY_ENABLED = False
+if cloudinary is not None:
+    try:
+        if CLOUDINARY_URL:
+            cloudinary.config(cloudinary_url=CLOUDINARY_URL)
+            CLOUDINARY_ENABLED = True
+        elif CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+            cloudinary.config(
+                cloud_name=CLOUDINARY_CLOUD_NAME,
+                api_key=CLOUDINARY_API_KEY,
+                api_secret=CLOUDINARY_API_SECRET
+            )
+            CLOUDINARY_ENABLED = True
+    except Exception:
+        CLOUDINARY_ENABLED = False
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -80,6 +116,30 @@ def save_uploaded_file(file, file_type='trek'):
         name, ext = os.path.splitext(filename)
         unique_filename = f"{uuid.uuid4().hex}_{name}{ext}"
         
+        # Try Cloudinary first if enabled
+        if CLOUDINARY_ENABLED and cloudinary is not None:
+            try:
+                folder_map = {
+                    'trek': 'trekmate/treks',
+                    'comment': 'trekmate/comments',
+                    'post': 'trekmate/posts'
+                }
+                folder = folder_map.get(file_type, 'trekmate/uploads')
+                # Cloudinary can read file-like objects
+                upload_res = cloudinary.uploader.upload(
+                    file,
+                    folder=folder,
+                    public_id=os.path.splitext(unique_filename)[0],
+                    resource_type='image',
+                    overwrite=False
+                )
+                url = upload_res.get('secure_url') or upload_res.get('url')
+                if url:
+                    return url
+            except Exception:
+                # Fallback to local save on any Cloudinary error
+                pass
+
         if file_type == 'trek':
             # Use the existing trekimages folder
             upload_folder = os.path.join(basedir, 'static', 'trekimages')
@@ -310,6 +370,14 @@ def _ensure_db_initialized():
 
 # Make trek image function available in templates
 app.jinja_env.globals['get_trek_image_filename'] = get_trek_image_filename
+
+# Jinja test: check if a string is an absolute URL (for Cloudinary images)
+def _is_url(value):
+    try:
+        return isinstance(value, str) and (value.startswith('http://') or value.startswith('https://'))
+    except Exception:
+        return False
+app.jinja_env.tests['url'] = _is_url
 
 # User Model
 class User(UserMixin, db.Model):
@@ -1219,24 +1287,42 @@ def guide():
 @app.route('/explore')
 def explore():
     """Explore treks page"""
-    search = request.args.get('search', '')
+    search = (request.args.get('search', '') or '').strip()
     difficulty_filter = request.args.get('difficulty', '')
     region_filter = request.args.get('region', '')
     
     # Base query
-    query = Trek.query
+    query = Trek.query.outerjoin(TrekRegion)
     
     # Apply search filter
     if search:
-        query = query.filter(Trek.name.contains(search))
+        like = f"%{search}%"
+        s_eq = search.lower()
+        query = query.filter(or_(
+            Trek.name.ilike(like),
+            Trek.full_name.ilike(like),
+            Trek.base_village.ilike(like),
+            TrekRegion.name.ilike(like),
+            func.lower(Trek.name) == s_eq,
+            func.lower(Trek.full_name) == s_eq
+        ))
     
-    # Apply difficulty filter
+    # Apply difficulty filter (handle hyphen vs en-dash variants)
     if difficulty_filter:
-        query = query.filter(Trek.difficulty == difficulty_filter)
+        variants = {difficulty_filter}
+        if '–' in difficulty_filter:
+            variants.add(difficulty_filter.replace('–', '-'))
+        if '-' in difficulty_filter:
+            variants.add(difficulty_filter.replace('-', '–'))
+        query = query.filter(Trek.difficulty.in_(list(variants)))
     
     # Apply region filter
     if region_filter:
-        query = query.filter(Trek.region_id == region_filter)
+        try:
+            query = query.filter(Trek.region_id == int(region_filter))
+        except (TypeError, ValueError):
+            # Ignore bad region values
+            pass
     
     treks = query.all()
     regions = TrekRegion.query.all()
@@ -1965,10 +2051,5 @@ def create_admin_user():
         print(f'Default admin user created for {admin_email}')
 
 if __name__ == '__main__':
-    with app.app_context():
-        # Create all database tables
-        db.create_all()
-        # Create default admin user
-        create_admin_user()
-    
+    # Tables and default admin are initialized lazily via the guarded initializer
     app.run(debug=False, host='0.0.0.0', port=5000)

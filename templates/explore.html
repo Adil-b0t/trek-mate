@@ -415,7 +415,11 @@
       <div class="trek-card-image">
         <!-- Use proper trek images -->
         {% if trek.image_filename %}
-          <img src="{{ url_for('static', filename='trekimages/' + trek.image_filename) }}" alt="{{ trek.name }}" onerror="this.src='{{ url_for('static', filename='image/img1.png') }}'">
+          {% if trek.image_filename is url %}
+            <img src="{{ trek.image_filename }}" alt="{{ trek.name }}" onerror="this.src='{{ url_for('static', filename='image/img1.png') }}'">
+          {% else %}
+            <img src="{{ url_for('static', filename='trekimages/' + trek.image_filename) }}" alt="{{ trek.name }}" onerror="this.src='{{ url_for('static', filename='image/img1.png') }}'">
+          {% endif %}
         {% else %}
           {% set image_filename = get_trek_image_filename(trek.name) %}
           <img src="{{ url_for('static', filename='trekimages/' + image_filename) }}" alt="{{ trek.name }}" onerror="this.src='{{ url_for('static', filename='image/img1.png') }}'">

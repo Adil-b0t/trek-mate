@@ -393,7 +393,11 @@
     <span class="tm-badge completed">✅ Completed trek</span>
     {% endif %}
     {% if p.image_filename %}
-    <img src="{{ url_for('static', filename='uploads/posts/' ~ p.image_filename) }}" alt="Post Image" class="tm-post-img" loading="lazy">
+      {% if p.image_filename is url %}
+        <img src="{{ p.image_filename }}" alt="Post Image" class="tm-post-img" loading="lazy">
+      {% else %}
+        <img src="{{ url_for('static', filename='uploads/posts/' ~ p.image_filename) }}" alt="Post Image" class="tm-post-img" loading="lazy">
+      {% endif %}
     {% endif %}
 
     <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
