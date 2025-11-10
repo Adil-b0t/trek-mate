@@ -28,6 +28,7 @@ try:
 except Exception:
     cloudinary = None
 from sqlalchemy import or_, func
+from werkzeug.exceptions import RequestEntityTooLarge
 
 app = Flask(__name__)
 load_dotenv()
@@ -151,40 +152,43 @@ def save_uploaded_file(file, file_type='trek'):
             upload_folder = os.path.join(basedir, 'static', 'uploads', 'posts')
         else:
             upload_folder = os.path.join(basedir, 'static', 'uploads')
-            
-        os.makedirs(upload_folder, exist_ok=True)
-        
-        file_path = os.path.join(upload_folder, unique_filename)
-        file.save(file_path)
 
-        # Attempt to compress/resize images for posts/comments
-        if file_type in ('post', 'comment') and Image is not None:
-            try:
-                ext = ext.lower()
-                # Open image
-                with Image.open(file_path) as im:
-                    im_format = im.format
-                    # Convert mode for JPEG if needed
-                    if im.mode in ("P", "RGBA") and (ext in ['.jpg', '.jpeg'] or (im_format and im_format.upper() == 'JPEG')):
-                        im = im.convert('RGB')
-                    # Resize if larger than 1600x1600 preserving aspect ratio
-                    max_size = (1600, 1600)
-                    im.thumbnail(max_size, Image.LANCZOS)
-                    save_kwargs = {}
-                    if ext in ['.jpg', '.jpeg'] or (im_format and im_format.upper() == 'JPEG'):
-                        save_kwargs.update({'quality': 80, 'optimize': True, 'progressive': True})
-                        im.save(file_path, format='JPEG', **save_kwargs)
-                    elif ext in ['.png'] or (im_format and im_format.upper() == 'PNG'):
-                        save_kwargs.update({'optimize': True})
-                        im.save(file_path, format='PNG', **save_kwargs)
-                    else:
-                        # For other formats, try to save with optimize when possible
-                        im.save(file_path)
-            except Exception:
-                # If optimization fails, keep original file
-                pass
+        try:
+            os.makedirs(upload_folder, exist_ok=True)
+            file_path = os.path.join(upload_folder, unique_filename)
+            file.save(file_path)
 
-        return unique_filename
+            # Attempt to compress/resize images for posts/comments
+            if file_type in ('post', 'comment') and Image is not None:
+                try:
+                    ext = ext.lower()
+                    # Open image
+                    with Image.open(file_path) as im:
+                        im_format = im.format
+                        # Convert mode for JPEG if needed
+                        if im.mode in ("P", "RGBA") and (ext in ['.jpg', '.jpeg'] or (im_format and im_format.upper() == 'JPEG')):
+                            im = im.convert('RGB')
+                        # Resize if larger than 1600x1600 preserving aspect ratio
+                        max_size = (1600, 1600)
+                        im.thumbnail(max_size, Image.LANCZOS)
+                        save_kwargs = {}
+                        if ext in ['.jpg', '.jpeg'] or (im_format and im_format.upper() == 'JPEG'):
+                            save_kwargs.update({'quality': 80, 'optimize': True, 'progressive': True})
+                            im.save(file_path, format='JPEG', **save_kwargs)
+                        elif ext in ['.png'] or (im_format and im_format.upper() == 'PNG'):
+                            save_kwargs.update({'optimize': True})
+                            im.save(file_path, format='PNG', **save_kwargs)
+                        else:
+                            # For other formats, try to save with optimize when possible
+                            im.save(file_path)
+                except Exception:
+                    # If optimization fails, keep original file
+                    pass
+
+            return unique_filename
+        except Exception:
+            # If local save fails (e.g., read-only FS on Render), signal failure
+            return None
     return None
 
 def get_trek_image_filename(trek_name):
@@ -588,6 +592,13 @@ def home():
 @app.route('/health')
 def health():
     return 'ok', 200
+
+# Friendly error for oversized uploads (prevents proxy HTTP2 protocol errors)
+@app.errorhandler(RequestEntityTooLarge)
+def handle_request_entity_too_large(e):
+    flash('File is too large. Max allowed size is 16 MB.', 'error')
+    # Redirect back to referrer if available
+    return redirect(request.referrer or url_for('home')), 413
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
