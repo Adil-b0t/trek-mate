@@ -43,6 +43,10 @@ OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
 ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD') 
 
+# SendGrid (preferred on Render to avoid outbound SMTP blocks)
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+SENDGRID_FROM = os.getenv('SENDGRID_FROM') or os.getenv('MAIL_DEFAULT_SENDER')
+
 
 # Database Configuration
 load_dotenv()
@@ -638,11 +642,35 @@ def login():
 def generate_otp():
     return ''.join(random.choices(string.digits, k=6))
 
+def _send_via_sendgrid(to_email, subject, body):
+    try:
+        if not (SENDGRID_API_KEY and SENDGRID_FROM and to_email):
+            return False
+        headers = {
+            'Authorization': f'Bearer {SENDGRID_API_KEY}',
+            'Content-Type': 'application/json'
+        }
+        payload = {
+            'personalizations': [{
+                'to': [{'email': to_email}]
+            }],
+            'from': {'email': SENDGRID_FROM, 'name': 'TrekMate'},
+            'subject': subject,
+            'content': [{'type': 'text/plain', 'value': body}]
+        }
+        resp = requests.post('https://api.sendgrid.com/v3/mail/send', headers=headers, json=payload, timeout=10)
+        if resp.status_code in (200, 202):
+            return True
+        app.logger.error(f"SendGrid error {resp.status_code}: {resp.text}")
+        return False
+    except Exception as e:
+        app.logger.error(f"SendGrid exception: {str(e)}")
+        return False
+
 # Send OTP email
 def send_otp_email(email, otp):
-    try:
-        msg = Message('TrekMate Password Reset Code', recipients=[email])
-        msg.body = f'''Your password reset code is: {otp}
+    subject = 'TrekMate Password Reset Code'
+    body = f'''Your password reset code is: {otp}
 
 This code will expire in 10 minutes.
 
@@ -650,16 +678,24 @@ Password yaad rakha karna!!
 
 If you did not request a password reset, please ignore this email.
 
--Adil Shaikh
-'''
+— Adil Shaikh'''
+    # Prefer SendGrid on Render
+    if _send_via_sendgrid(email, subject, body):
+        return True
+    # Fallback to Flask-Mail
+    try:
+        msg = Message(subject, recipients=[email])
+        msg.body = body
         mail.send(msg)
         return True
     except Exception as e:
-        app.logger.error(f"Failed to send email: {str(e)}")
+        app.logger.error(f"Failed to send email (fallback): {str(e)}")
         return False
 
 # Generic helper to send user emails (used for comment notifications)
 def send_user_email(to_email, subject, body):
+    if _send_via_sendgrid(to_email, subject, body):
+        return True
     try:
         if not to_email:
             return False
@@ -668,7 +704,7 @@ def send_user_email(to_email, subject, body):
         mail.send(msg)
         return True
     except Exception as e:
-        app.logger.error(f"Failed to send user email: {str(e)}")
+        app.logger.error(f"Failed to send user email (fallback): {str(e)}")
         return False
 
 # Send Registration OTP email
