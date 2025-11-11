@@ -102,6 +102,10 @@
       <h1>Register</h1>
       <p>Create your TrekMate account and start exploring!</p>
     </div>
+    <div style="background:#f1f9f1; border-left:4px solid #68b267; color:#0f3a24; padding:10px 12px; border-radius:8px; margin-bottom:12px;">
+      Tip: After you click "Send Verification Code" <br>📱 Check Your TrekMate Mail
+      Open your email app → tap the ☰ menu → go to Spam → Get your OTP code → open it and tap “Report not spam” to get mails directly. 🚀<br>Don't worry it's safe 💯
+    </div>
     <form method="POST" action="{{ url_for('register') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 

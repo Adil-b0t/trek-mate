@@ -389,6 +389,7 @@ app.jinja_env.tests['url'] = _is_url
 
 # User Model
 class User(UserMixin, db.Model):
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
@@ -470,7 +471,7 @@ class TrekComment(db.Model):
     __tablename__ = 'trek_comments'
     id = db.Column(db.Integer, primary_key=True)
     trek_id = db.Column(db.Integer, db.ForeignKey('treks.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     comment = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Integer)  # 1-5 star rating
     image_filename = db.Column(db.String(255))  # Uploaded image filename
@@ -488,7 +489,7 @@ class AdminNotification(db.Model):
     message = db.Column(db.Text, nullable=False)
     trek_id = db.Column(db.Integer, db.ForeignKey('treks.id'), nullable=True)
     comment_id = db.Column(db.Integer, db.ForeignKey('trek_comments.id'), nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # User who triggered notification
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # User who triggered notification
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -501,7 +502,7 @@ class AdminNotification(db.Model):
 class SavedTrek(db.Model):
     __tablename__ = 'saved_treks'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     trek_id = db.Column(db.Integer, db.ForeignKey('treks.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -516,7 +517,7 @@ class SavedTrek(db.Model):
 class TrekPost(db.Model):
     __tablename__ = 'trek_posts'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     trek_name = db.Column(db.String(255), nullable=False)
     trek_date = db.Column(db.Date, nullable=True)
     trek_location = db.Column(db.String(255), nullable=True)
@@ -535,7 +536,7 @@ class TrekPostReaction(db.Model):
     __tablename__ = 'trek_post_reactions'
     id = db.Column(db.Integer, primary_key=True)
     post_id = db.Column(db.Integer, db.ForeignKey('trek_posts.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship('User', backref=db.backref('trek_post_reactions', lazy=True, cascade='all, delete-orphan'))
@@ -545,7 +546,7 @@ class TrekPostComment(db.Model):
     __tablename__ = 'trek_post_comments'
     id = db.Column(db.Integer, primary_key=True)
     post_id = db.Column(db.Integer, db.ForeignKey('trek_posts.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     parent_id = db.Column(db.Integer, db.ForeignKey('trek_post_comments.id'), nullable=True)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -556,7 +557,7 @@ class TrekPostComment(db.Model):
 class UserNotification(db.Model):
     __tablename__ = 'user_notifications'
     id = db.Column(db.Integer, primary_key=True)
-    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     type = db.Column(db.String(50), nullable=False)  # 'reaction', 'comment', 'reply'
     message = db.Column(db.Text, nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('trek_posts.id'), nullable=True)
@@ -642,7 +643,7 @@ def login():
 def generate_otp():
     return ''.join(random.choices(string.digits, k=6))
 
-def _send_via_sendgrid(to_email, subject, body):
+def _send_via_sendgrid(to_email, subject, body, html_body=None, disable_tracking=True):
     try:
         if not (SENDGRID_API_KEY and SENDGRID_FROM and to_email):
             return False
@@ -656,8 +657,18 @@ def _send_via_sendgrid(to_email, subject, body):
             }],
             'from': {'email': SENDGRID_FROM, 'name': 'TrekMate'},
             'subject': subject,
-            'content': [{'type': 'text/plain', 'value': body}]
+            'content': (
+                [{'type': 'text/plain', 'value': body}] if not html_body else [
+                    {'type': 'text/plain', 'value': body},
+                    {'type': 'text/html', 'value': html_body}
+                ]
+            )
         }
+        if disable_tracking:
+            payload['tracking_settings'] = {
+                'click_tracking': {'enable': False, 'enable_text': False},
+                'open_tracking': {'enable': False}
+            }
         resp = requests.post('https://api.sendgrid.com/v3/mail/send', headers=headers, json=payload, timeout=10)
         if resp.status_code in (200, 202):
             return True
@@ -679,8 +690,16 @@ Password yaad rakha karna!!
 If you did not request a password reset, please ignore this email.
 
 — Adil Shaikh'''
+    html = f"""
+    <div style="font-family:Arial, sans-serif; line-height:1.5; color:#111">
+      <p>Your password reset code is: <strong style="font-size:18px">{otp}</strong></p>
+      <p>This code will expire in 10 minutes.</p>
+      <p>If you did not request a password reset, please ignore this email.</p>
+      <p style="margin-top:16px">— TrekMate</p>
+    </div>
+    """
     # Prefer SendGrid on Render
-    if _send_via_sendgrid(email, subject, body):
+    if _send_via_sendgrid(email, subject, body, html_body=html):
         return True
     # Fallback to Flask-Mail
     try:
@@ -694,7 +713,14 @@ If you did not request a password reset, please ignore this email.
 
 # Generic helper to send user emails (used for comment notifications)
 def send_user_email(to_email, subject, body):
-    if _send_via_sendgrid(to_email, subject, body):
+    # Minimal HTML mirror to improve deliverability formatting
+    html = f"""
+    <div style=\"font-family:Arial, sans-serif; line-height:1.5; color:#111\">
+      <pre style=\"white-space:pre-wrap; font-family:inherit\">{body}</pre>
+      <p style=\"margin-top:16px\">— TrekMate</p>
+    </div>
+    """
+    if _send_via_sendgrid(to_email, subject, body, html_body=html):
         return True
     try:
         if not to_email:
@@ -843,6 +869,15 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('home'))
     
+    # On fresh GET, reset any in-progress registration state so the form starts from the beginning
+    if request.method == 'GET':
+        session.pop('reg_name', None)
+        session.pop('reg_email', None)
+        session.pop('reg_otp', None)
+        session.pop('reg_otp_time', None)
+        session.pop('reg_verified', None)
+        return render_template('register.html')
+    
     if request.method == 'POST':
         action = request.form.get('action')
 
@@ -944,6 +979,7 @@ def register():
                 return redirect(url_for('home'))
             except Exception as e:
                 db.session.rollback()
+                app.logger.error(f"Registration error: {str(e)}")
                 flash('An error occurred during registration. Please try again.', 'error')
                 return render_template('register.html')
 
@@ -1382,7 +1418,12 @@ def explore():
 def trek_detail(trek_id):
     """Trek detail page"""
     trek = Trek.query.get_or_404(trek_id)
-    comments = TrekComment.query.filter_by(trek_id=trek_id).order_by(TrekComment.created_at.desc()).all()
+    # Exclude orphaned comments that reference a non-existent user (can happen after schema changes)
+    comments = (TrekComment.query
+                .join(User)
+                .filter(TrekComment.trek_id == trek_id)
+                .order_by(TrekComment.created_at.desc())
+                .all())
     
     # Get weather data for the trek location
     weather_data = None
@@ -1876,9 +1917,28 @@ def delete_post(post_id):
     if post.user_id != current_user.id and not current_user.is_admin():
         flash('You do not have permission to delete this post.', 'error')
         return redirect(url_for('trek_feed') + f"#post-{post_id}")
-    db.session.delete(post)
-    db.session.commit()
-    flash('Post deleted.', 'success')
+    try:
+        # Collect related comment IDs for notifications cleanup
+        comment_ids = [c.id for c in TrekPostComment.query.filter_by(post_id=post_id).all()]
+
+        # Delete user notifications referencing this post or its comments first
+        if comment_ids:
+            UserNotification.query.filter(UserNotification.comment_id.in_(comment_ids)).delete(synchronize_session=False)
+        UserNotification.query.filter_by(post_id=post_id).delete(synchronize_session=False)
+
+        # Delete reactions first
+        TrekPostReaction.query.filter_by(post_id=post_id).delete(synchronize_session=False)
+        # Delete child comments first to satisfy self-referential FK, then parents
+        TrekPostComment.query.filter_by(post_id=post_id).filter(TrekPostComment.parent_id.isnot(None)).delete(synchronize_session=False)
+        TrekPostComment.query.filter_by(post_id=post_id).filter(TrekPostComment.parent_id.is_(None)).delete(synchronize_session=False)
+
+        # Finally delete the post
+        db.session.delete(post)
+        db.session.commit()
+        flash('Post deleted.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Failed to delete post due to a server error.', 'error')
     return redirect(url_for('trek_feed'))
 
 @app.route('/trek-feed/comment/<int:comment_id>/delete', methods=['POST'])
@@ -1889,9 +1949,21 @@ def delete_post_comment(comment_id):
     if comment.user_id != current_user.id and not current_user.is_admin():
         flash('You do not have permission to delete this comment.', 'error')
         return redirect(url_for('trek_feed') + f"#post-{post.id}")
-    db.session.delete(comment)
-    db.session.commit()
-    flash('Comment deleted.', 'success')
+    try:
+        # Delete notifications for this comment and its direct replies
+        reply_ids = [r.id for r in TrekPostComment.query.filter_by(parent_id=comment.id).all()]
+        ids_to_delete = [comment.id] + reply_ids
+        UserNotification.query.filter(UserNotification.comment_id.in_(ids_to_delete)).delete(synchronize_session=False)
+
+        # Delete the replies first, then the parent comment
+        if reply_ids:
+            TrekPostComment.query.filter(TrekPostComment.id.in_(reply_ids)).delete(synchronize_session=False)
+        db.session.delete(comment)
+        db.session.commit()
+        flash('Comment deleted.', 'success')
+    except Exception:
+        db.session.rollback()
+        flash('Failed to delete comment due to a server error.', 'error')
     return redirect(url_for('trek_feed') + f"#post-{post.id}")
 
 # Admin Notification Routes

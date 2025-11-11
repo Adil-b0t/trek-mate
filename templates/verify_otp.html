@@ -182,6 +182,9 @@
   <main>
     <h2>Verify OTP</h2>
     <p class="auth-subtitle">Enter the 6-digit code sent to your email</p>
+    <div style="background:#f1f9f1; border-left:4px solid #68b267; color:#0f3a24; padding:10px 12px; border-radius:8px; margin-bottom:12px;">
+      Tip: If you don’t see the email, check your Spam/Promotions. Add our sender address to your contacts to avoid this next time.
+    </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}

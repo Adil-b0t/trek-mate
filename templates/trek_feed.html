@@ -283,6 +283,11 @@
 <section class="tm-feed-container">
   <h1 class="tm-title">Trek Feed</h1>
   <p class="tm-sub">Share your trek experiences or find buddies to join your next adventure 🌿 You can share your insta or contacts in the comment 🍃 To connect with each other🤷‍♀️</p>
+  <!-- 5s info popup banner -->
+  <div id="tmNotifTip" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#16423c; color:#e8ffef; padding:14px 40px 14px 16px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.25); z-index:3000; max-width:min(720px,92vw); text-align:center;">
+    <button id="tmNotifTipClose" aria-label="Close" title="Close" style="position:absolute; top:8px; right:10px; background:transparent; border:none; color:#e8ffef; font-size:18px; line-height:1; cursor:pointer;">×</button>
+    📣 Heads up: We’ll email you when someone comments or replies on your post. For now, Gmail may put it in Spam since we don’t have a custom domain. It’s safe—mark “Not spam” so future emails land in Inbox. Happy posting! 🚀
+  </div>
 
   {% if current_user.is_authenticated %}
   <div style="display:flex; justify-content:flex-end; margin-bottom:40px;">
@@ -556,6 +561,28 @@
   }
 
   document.addEventListener('DOMContentLoaded', tmInitReplies);
+
+  // Show and auto-hide the notification tip with manual close support
+  let tmNotifTimer;
+  document.addEventListener('DOMContentLoaded', function(){
+    const tip = document.getElementById('tmNotifTip');
+    if (!tip) return;
+    // Show only once per user (persisted across refreshes)
+    const alreadyShown = window.localStorage.getItem('tmNotifTipShown') === '1';
+    if (alreadyShown) return;
+    // Mark as shown immediately so refresh won't re-show
+    window.localStorage.setItem('tmNotifTipShown', '1');
+
+    const closeBtn = document.getElementById('tmNotifTipClose');
+    tip.style.display = 'block';
+    tmNotifTimer = setTimeout(() => { tip.style.display = 'none'; }, 10000);
+    if (closeBtn){
+      closeBtn.addEventListener('click', function(){
+        tip.style.display = 'none';
+        if (tmNotifTimer) { clearTimeout(tmNotifTimer); tmNotifTimer = null; }
+      });
+    }
+  });
 
   // Direct delete: no confirmation toggle required for comments/replies
 </script>
