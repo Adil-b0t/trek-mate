@@ -207,7 +207,21 @@ OPENWEATHER_BASE_URL=https://api.openweathermap.org/data/2.5/weather
 # Admin bootstrap (created at startup if not present)
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=supersecurepassword
+
+# database Url
+DATABASE_URL=your db url
+
+# cloudinary
+CLOUDINARY_API_SECRET=your cloudinary api secret
+CLOUDINARY_API_KEY=your cloudinary api key
+CLOUDINARY_CLOUD_NAME=your cloudinary cloud name
+CLOUDINARY_URL = cloudinary://your cloudinary url
+
+# sendgrid
+SENDGRID_API_KEY = your sendgrid api key
+SENDGRID_FROM = your sendgrid from
 ```
+
 
 Notes:
 
