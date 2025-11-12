@@ -30,6 +30,10 @@ except Exception:
 from sqlalchemy import or_, func
 from werkzeug.exceptions import RequestEntityTooLarge
 
+# =============================
+# SECTION: App Configuration
+# - Flask app, environment, mail, DB, uploads, APIs, Cloudinary
+# =============================
 app = Flask(__name__)
 load_dotenv()
 app.secret_key = os.getenv("SECRET_KEY")
@@ -104,6 +108,7 @@ if cloudinary is not None:
     except Exception:
         CLOUDINARY_ENABLED = False
 
+# Helper functions and services (preserved)
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -346,7 +351,7 @@ def get_weather_data(city_name, region_name=None):
             'location': city_name or 'Trek Location'
         }
 
-# Initialize extensions
+# Initialize extensions (preserved order)
 db = SQLAlchemy(app)
 csrf = CSRFProtect(app)
 login_manager = LoginManager()
@@ -387,6 +392,10 @@ def _is_url(value):
         return False
 app.jinja_env.tests['url'] = _is_url
 
+# =============================
+# SECTION: Database Models
+# - User, Trek, Routes, Highlights, Comments, Notifications, Saved Treks
+# =============================
 # User Model
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -569,42 +578,15 @@ class UserNotification(db.Model):
     post = db.relationship('TrekPost')
     comment = db.relationship('TrekPostComment')
 
-def create_notification(recipient_id, notif_type, message, post_id=None, comment_id=None):
-    try:
-        if recipient_id and current_user.is_authenticated and recipient_id != current_user.id:
-            n = UserNotification(
-                recipient_id=recipient_id,
-                type=notif_type,
-                message=message,
-                post_id=post_id,
-                comment_id=comment_id
-            )
-            db.session.add(n)
-            db.session.commit()
-    except Exception:
-        db.session.rollback()
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-@app.route('/')
-def home():
-    """Home page route"""
-    return render_template('index.html')
-
-# Health check endpoints for Render
-@app.route('/health')
-def health():
-    return 'ok', 200
-
-# Friendly error for oversized uploads (prevents proxy HTTP2 protocol errors)
-@app.errorhandler(RequestEntityTooLarge)
-def handle_request_entity_too_large(e):
-    flash('File is too large. Max allowed size is 16 MB.', 'error')
-    # Redirect back to referrer if available
-    return redirect(request.referrer or url_for('home')), 413
-
+# =============================
+# SECTION: Auth
+# - #1 Login
+# - #2 Forgot Password
+# - #3 Verify OTP
+# - #4 Reset Password
+# - #5 Register
+# - #6 Logout
+# =============================
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """Login page route"""
@@ -994,6 +976,45 @@ def logout():
     flash(f'Goodbye, {user_name}! You have been logged out.', 'info')
     return redirect(url_for('home'))
 
+def create_notification(recipient_id, notif_type, message, post_id=None, comment_id=None):
+    try:
+        if recipient_id and current_user.is_authenticated and recipient_id != current_user.id:
+            n = UserNotification(
+                recipient_id=recipient_id,
+                type=notif_type,
+                message=message,
+                post_id=post_id,
+                comment_id=comment_id
+            )
+            db.session.add(n)
+            db.session.commit()
+    except Exception:
+        db.session.rollback()
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@app.route('/')
+def home():
+    """Home page route"""
+    return render_template('index.html')
+
+# Health check endpoints for Render
+@app.route('/health')
+def health():
+    return 'ok', 200
+
+# Friendly error for oversized uploads (prevents proxy HTTP2 protocol errors)
+@app.errorhandler(RequestEntityTooLarge)
+def handle_request_entity_too_large(e):
+    flash('File is too large. Max allowed size is 16 MB.', 'error')
+    # Redirect back to referrer if available
+    return redirect(request.referrer or url_for('home')), 413
+
+# =============================
+# SECTION: User Profile
+# =============================
 @app.route('/profile')
 @login_required
 def profile():
@@ -1006,6 +1027,12 @@ def profile():
     
     return render_template('profile.html', user=current_user, saved_treks=saved_treks, comments_count=comments_count)
 
+# =============================
+# SECTION: Trek Administration (Admin Only)
+# - Delete Trek
+# - Trek Management (Create)
+# - Edit Trek (Update)
+# =============================
 @app.route('/delete_trek/<int:trek_id>', methods=['POST'])
 @login_required
 def delete_trek(trek_id):
@@ -1357,6 +1384,11 @@ def edit_trek(trek_id):
         mumbai_public=mumbai_public
     )
 
+# =============================
+# SECTION: Static Pages
+# - About Us
+# - Guide
+# =============================
 @app.route('/aboutus')
 def aboutus():
     """About Us page route"""
@@ -1367,6 +1399,9 @@ def guide():
     """Guide page route"""
     return render_template('guide.html')
 
+# =============================
+# SECTION: Trek Explore & Search
+# =============================
 @app.route('/explore')
 def explore():
     """Explore treks page"""
@@ -1414,6 +1449,11 @@ def explore():
                          search=search, difficulty_filter=difficulty_filter,
                          region_filter=region_filter)
 
+# =============================
+# SECTION: Trek Detail & Trek Comments
+# - Trek detail view
+# - Add/Delete trek-specific comments
+# =============================
 @app.route('/trek/<int:trek_id>')
 def trek_detail(trek_id):
     """Trek detail page"""
@@ -1543,6 +1583,10 @@ def delete_comment(comment_id):
         flash('Failed to delete comment due to a server error.', 'error')
     return redirect(url_for('trek_detail', trek_id=trek_id))
 
+# =============================
+# SECTION: Recommendations
+# - Trek Match helper and route
+# =============================
 def calculate_trek_match(trek, age_group, health_issues_list, fitness_level, experience, trek_types_list):
     """Calculate match percentage for a trek based on user preferences with multiple selections support"""
     score = 0
@@ -1774,7 +1818,10 @@ def trek_match():
     
     return render_template('trek_match.html', recommendations=recommendations)
 
-# Trek Feed Routes
+# =============================
+# SECTION: Trek Feed
+# - Public feed, create post, react, comment/reply, delete
+# =============================
 @app.route('/trek-feed', methods=['GET', 'POST'])
 def trek_feed():
     """Public Trek Feed page: list posts; create post requires login"""
@@ -1966,7 +2013,10 @@ def delete_post_comment(comment_id):
         flash('Failed to delete comment due to a server error.', 'error')
     return redirect(url_for('trek_feed') + f"#post-{post.id}")
 
-# Admin Notification Routes
+# =============================
+# SECTION: Admin Notifications
+# - List, check, mark read
+# =============================
 @app.route('/admin/notifications')
 @login_required
 def admin_notifications():
@@ -2055,7 +2105,10 @@ def mark_all_notifications_read():
     
     return {'success': True}
 
-# Saved Trek Routes
+# =============================
+# SECTION: Saved Treks
+# - Save/Unsave, check saved, remove by id
+# =============================
 @app.route('/trek/<int:trek_id>/save', methods=['POST'])
 @login_required
 def save_trek(trek_id):
@@ -2159,11 +2212,18 @@ def get_time_ago(created_at):
     else:
         return "Just now"
 
+# =============================
+# SECTION: Error Handlers
+# =============================
 @app.errorhandler(404)
 def page_not_found(e):
     """Handle 404 errors"""
     return render_template('404.html'), 404
 
+# =============================
+# SECTION: Admin Setup
+# - Create default admin from env if missing
+# =============================
 def create_admin_user():
     """Create default admin user from environment variables if it doesn't exist"""
     admin_email = ADMIN_EMAIL
@@ -2183,6 +2243,9 @@ def create_admin_user():
         db.session.commit()
         print(f'Default admin user created for {admin_email}')
 
+# =============================
+# SECTION: Entrypoint
+# =============================
 if __name__ == '__main__':
     # Tables and default admin are initialized lazily via the guarded initializer
     app.run(debug=False, host='0.0.0.0', port=5000)
